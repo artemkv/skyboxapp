@@ -1,0 +1,75 @@
+import { IonIcon } from "@ionic/react";
+import { documentOutline, folderOutline } from "ionicons/icons";
+import { FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, TreeNodeType } from "../model";
+import "./FolderView.css";
+import { memo } from "react";
+import { Dispatch } from "../hooks/useReducer";
+import { AppEvent, EventType } from "../events";
+
+interface FolderViewProps {
+    folder: FileTreeNode_Folder
+    dispatch: Dispatch<AppEvent>;
+}
+
+const FolderView: React.FC<FolderViewProps> = memo((props) => {
+    const folder = props.folder;
+    const dispatch = props.dispatch;
+
+    // TODO: sort folders first
+    // TODO: AI code
+    const nodes = folder.nodes.sort((a, b) => {
+        // folders first
+        if (a.type !== b.type) {
+            return a.type === TreeNodeType.Folder ? -1 : 1;
+        }
+
+        // alphabetical, case-insensitive
+        return a.name.localeCompare(b.name, undefined, {
+            sensitivity: "base",
+        });
+    });
+
+    const onFileClicked = (node: FileTreeNode_File) => {
+        // TODO:
+        console.log("CLICKED!!!");
+
+        dispatch({
+            type: EventType.FileDownloadRequested,
+            file: node
+        });
+    }
+
+    const getFolderEntry = (node: FileTreeNode, idx: number) => {
+        if (node.type == TreeNodeType.File) {
+            return <div
+                key={idx}
+                className="folder-entry"
+                onClick={() => onFileClicked(node)}>
+                <span className='file-entry-icon'>
+                    <IonIcon icon={documentOutline} />
+                </span>
+                {node.name}
+            </div>;
+        }
+
+        // TODO:
+        return <a
+            key={idx}
+            href={"home/" + node.fullPath.join("/")}>
+            <div
+                className="folder-entry">
+
+                <span className='folder-entry-icon'>
+                    <IonIcon icon={folderOutline} />
+                </span>
+                {node.name}
+            </div>
+        </a>;
+    }
+
+    return <div className="folder-view">
+        {nodes.map((x, idx) => getFolderEntry(x, idx))}
+    </div>
+});
+
+export default FolderView;

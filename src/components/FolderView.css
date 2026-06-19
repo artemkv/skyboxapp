@@ -1,0 +1,26 @@
+.folder-view {
+    margin: 64px 32px 32px 32px;
+    font-family: "Segoe UI", arial, sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.folder-entry {
+    margin: 24px 4px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;
+}
+
+.folder-entry-icon {
+    margin: 0px 16px 0px 0px;
+    color: #13a8f3;
+    font-size: 48px;
+}
+
+.file-entry-icon {
+    margin: 0px 16px 0px 0px;
+    color: lightgray;
+    font-size: 48px;
+}

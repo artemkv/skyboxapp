@@ -1,0 +1,25 @@
+General
+
+- Now we retrieve metadata for every folder
+
+Download
+
+- After download is done, open the file
+    - Until that is implemented, show toast
+- If already downloaded and matches the etag, skip download, just open
+- While downloading, show some kind of progress indicator
+- Decrypt
+- Show errors
+
+UI
+
+- Add header
+
+Security
+
+- Add settings
+- Allow saving settings as JSON (with validation)
+- Use those settings to connect to S3
+- Store settings encrypted
+- Derive encryption key from pin
+- Ask for pin on startup

@@ -1,2 +1,19 @@
 /* For information on how to create your own theme, please refer to:
 http://ionicframework.com/docs/theming/ */
+
+:root {
+    --ion-color-primary: #1F0E08;
+    --ion-color-primary-rgb: 11, 102, 35;
+    --ion-color-primary-contrast: #ffffff;
+    --ion-color-primary-contrast-rgb: 255, 255, 255;
+    --ion-color-primary-shade: #1b0c07;
+    --ion-color-primary-tint: #352621;
+    --ion-background-color: #fff;
+    --ion-item-background: #fff;
+    --ion-text-color: #101720;
+}
+
+/* TODO */
+@media (prefers-color-scheme: dark) {
+    :root.md {}
+}

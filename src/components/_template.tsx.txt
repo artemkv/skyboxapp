@@ -1,0 +1,15 @@
+import "./XXXXXXXXXX.css";
+import { memo } from "react";
+
+interface XXXXXXXXXXProps {
+    // dispatch: Dispatch<AppEvent>;
+}
+
+const XXXXXXXXXX: React.FC<XXXXXXXXXXProps> = memo((props) => {
+    // const dispatch = props.dispatch;
+
+    return <div>
+    </div>
+});
+
+export default XXXXXXXXXX;
