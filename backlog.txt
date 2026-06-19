@@ -1,6 +1,6 @@
 General
 
-- Now we retrieve metadata for every folder
+- --Now we retrieve metadata for every folder--
 
 Download
 

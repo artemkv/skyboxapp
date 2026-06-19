@@ -1,6 +1,6 @@
-import { Directory, Filesystem } from "@capacitor/filesystem";
+import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 
-// TODO: see if there is a better way
+// TODO: see if there is a better way (maybe some existing constant)
 export const PATH_SEPARATOR = "/";
 
 const readBlobContentAsBase64 = async (blob: Blob): Promise<string> => {
@@ -15,6 +15,24 @@ const readBlobContentAsBase64 = async (blob: Blob): Promise<string> => {
         };
         reader.readAsDataURL(blob);
     });
+};
+
+export const saveFolderMeta = async (path: string, data: string): Promise<void> => {
+    await Filesystem.writeFile({
+        path,
+        data,
+        directory: Directory.Library,
+        encoding: Encoding.UTF8,
+    });
+};
+
+export const loadFolderMeta = async (path: string): Promise<string> => {
+    const content = await Filesystem.readFile({
+        path,
+        directory: Directory.Library,
+        encoding: Encoding.UTF8,
+    });
+    return content.data.toString();
 };
 
 export const saveFile = async (path: string, blob: Blob): Promise<void> => {

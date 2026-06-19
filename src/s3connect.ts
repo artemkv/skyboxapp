@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand, HeadObjectCommand, S3ServiceException } from "@aws-sdk/client-s3";
 import { AWS_ACCESS_KEY_ID, AWS_REGION, AWS_SECRET_ACCESS_KEY } from './UNSAFE.js';
 
 const s3client = new S3Client({
@@ -17,25 +17,56 @@ const makeFullObjectKey = (deviceId: string, hash: string): string => {
     return `${deviceId}/${hash}`;
 }
 
-// TODO: use response.ETag to cache results
-// TODO: actually, work on the level of device id, not object key
-export const downloadFolderMetadata = async (
-    bucket: string, deviceId: string): Promise<string> => {
+export enum FolderMetaResultType {
+    FolderMeta,
+    NotModified,
+}
+
+export interface FolderMetaResult_FolderMeta {
+    type: FolderMetaResultType.FolderMeta;
+    meta: string;
+    etag: string;
+}
+
+export interface FolderMetaResult_NotModified {
+    type: FolderMetaResultType.NotModified;
+}
+
+export type FolderMetaResult = FolderMetaResult_FolderMeta | FolderMetaResult_NotModified;
+
+export const downloadFolderMeta = async (
+    bucket: string, deviceId: string, etag: string): Promise<FolderMetaResult> => {
     const key = makeFolderMetaKey(deviceId);
     const command = new GetObjectCommand({
         Bucket: bucket,
         Key: key,
+        IfNoneMatch: etag
     });
 
-    const response = await s3client.send(command);
-    if (!response.Body) {
-        throw new Error(`Error retrieving '${key}' from '${bucket}': empty response`);
-    }
+    try {
+        const response = await s3client.send(command);
+        if (!response.Body) {
+            throw new Error(`Error retrieving '${key}' from '${bucket}': empty response`);
+        }
 
-    return response.Body.transformToString();
+        return {
+            type: FolderMetaResultType.FolderMeta,
+            meta: await response.Body.transformToString(),
+            etag: response.ETag ?? ''
+        };
+    } catch (err) {
+        if (err instanceof S3ServiceException) {
+            if (err.$metadata.httpStatusCode === 304) {
+                return {
+                    type: FolderMetaResultType.NotModified
+                };
+            }
+        }
+        throw err;
+    }
 }
 
-export const getFileMetadata = async (
+export const getFileMeta = async (
     bucket: string, deviceId: string, objectKey: string): Promise<{ [key: string]: string }> => {
     const key = makeFullObjectKey(deviceId, objectKey);
     const command = new HeadObjectCommand({

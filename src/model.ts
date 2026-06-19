@@ -65,6 +65,11 @@ export const LoadingFolderMeta: FolderMetaContainer = {
     state: FolderMetaState.Loading
 };
 
+export interface FolderMetaCached {
+    meta: FolderMeta,
+    etag: string
+}
+
 // File meta
 
 export interface FileMeta {

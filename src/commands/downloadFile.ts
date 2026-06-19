@@ -2,7 +2,7 @@ import { CommandType, DownloadFileCommand } from "../commands";
 import { decrypt, deriveMasterKey } from "../crypto";
 import { PATH_SEPARATOR, saveFile } from "../fsconnect";
 import { FileMeta } from "../model";
-import { downloadObject, getFileMetadata } from "../s3connect";
+import { downloadObject, getFileMeta } from "../s3connect";
 import { SKYBOX_BUCKET, SKYBOX_DEVICEID, SKYBOX_SECRET } from "../UNSAFE";
 
 const SKYBOX_LOCAL_FOLDER = "Skybox";
@@ -56,7 +56,7 @@ export const DownloadFile = (seq: number, fullPath: string[], fileName: string, 
 
             // get file metadata
             console.log("Retrieving file metadata");
-            const meta = await getFileMetadata(SKYBOX_BUCKET, SKYBOX_DEVICEID, objectKey);
+            const meta = await getFileMeta(SKYBOX_BUCKET, SKYBOX_DEVICEID, objectKey);
             const { fileNonce, fileEncryptionKeyEncrypted, fileEncryptionKeyNonce } = parseFileMeta(meta);
 
             // decrypt file key
