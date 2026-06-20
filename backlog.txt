@@ -1,13 +1,19 @@
 General
 
 - --Now we retrieve metadata for every folder--
+- Show file sizes
 
 Download
 
 - --After download is done, open the file--
 - --While downloading, show some kind of progress indicator--
-- Store etags of downloaded files in private folder
-- If already downloaded and matches --the size-- and etag, skip download, just open
+- --If file found locally and the same size, skip download, just open--
+- NOT SURE: only skip if size and etag matches
+    - checking etag guarantees up to date
+    - but it requires internet connection
+    - of course, you could always go to file system directly
+    - but by same logic, you could also do that to force re-download
+- Allow downloading the complete folder
 - Show errors
 
 UI
@@ -23,3 +29,9 @@ Security
 - Store settings encrypted
 - Derive encryption key from pin
 - Ask for pin on startup
+
+Preview
+
+- make custom in-app preview for text files
+- make custom in-app preview for md files
+- make custom in-app preview for images
