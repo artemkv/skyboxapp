@@ -35,3 +35,7 @@ Preview
 - make custom in-app preview for text files
 - make custom in-app preview for md files
 - make custom in-app preview for images
+
+Offline
+
+- cache folder metadata on the device, and use if offline
