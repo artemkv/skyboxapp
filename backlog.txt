@@ -5,9 +5,9 @@ General
 Download
 
 - --After download is done, open the file--
+- --While downloading, show some kind of progress indicator--
 - Store etags of downloaded files in private folder
-- If already downloaded and matches the etag, skip download, just open
-- While downloading, show some kind of progress indicator
+- If already downloaded and matches --the size-- and etag, skip download, just open
 - Show errors
 
 UI
