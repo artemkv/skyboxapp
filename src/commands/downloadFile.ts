@@ -42,6 +42,11 @@ export function base64ToUint8Array(base64: string): Uint8Array {
     return bytes;
 }
 
+const makeLocalFilePath = (fullPath: string[], fileName: string) => {
+    const folder = [SKYBOX_LOCAL_FOLDER, SKYBOX_DEVICEID, ...fullPath].join(PATH_SEPARATOR);
+    return `${folder}${PATH_SEPARATOR}${fileName}`
+}
+
 export const DownloadFile = (seq: number, fullPath: string[], fileName: string, objectKey: string): DownloadFileCommand => ({
     seq,
     type: CommandType.DownloadFile,
@@ -80,8 +85,7 @@ export const DownloadFile = (seq: number, fullPath: string[], fileName: string, 
 
             // save file
             console.log("Saving file");
-            const folderPath = [SKYBOX_LOCAL_FOLDER, ...fullPath].join(PATH_SEPARATOR);
-            const path = `${folderPath}${PATH_SEPARATOR}${fileName}`;
+            const path = makeLocalFilePath(fullPath, fileName);
             const blob = new Blob([decrypted]);
             await saveFile(path, blob);
 
