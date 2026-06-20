@@ -117,6 +117,7 @@ export const DownloadFile = (seq: number, appConfig: AppConfig, fileNode: FileTr
 
             // save file
             // console.log("Saving file");
+            // TODO: works but 'npx tsc --noEmit' complains
             const blob = new Blob([decrypted]);
             await saveFile(path, blob);
 
