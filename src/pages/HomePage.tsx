@@ -13,6 +13,7 @@ interface HomePageProps {
   dispatch: Dispatch<AppEvent>;
 }
 
+// TODO: show (state.folderMeta.errors) somehow
 const HomePage: React.FC<HomePageProps> = (props) => {
   const state = props.state;
   const dispatch = props.dispatch;

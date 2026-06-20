@@ -54,6 +54,7 @@ export interface FolderMetaLoadingFailed {
 export interface FolderMetaLoaded {
     state: FolderMetaState.Loaded;
     fileTree: FileTreeNode;
+    errors: string[];
 }
 
 export type FolderMetaContainer =

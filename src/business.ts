@@ -1,6 +1,7 @@
 import { AppCommand } from "./commands";
 import { DownloadFile } from "./commands/downloadFile";
-import { FileDownloadRequestedEvent, FolderMetaLoadedEvent, FolderMetaLoadingFailedEvent } from "./events";
+import { ViewFile } from "./commands/viewFile";
+import { FileDownloadedEvent, FileDownloadFailedEvent, FileDownloadRequestedEvent, FolderMetaLoadedEvent, FolderMetaLoadingFailedEvent, OpeningFileFailedEvent } from "./events";
 import { AppState, FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, FolderMeta, FolderMetaLoaded, FolderMetaState, TreeNodeType } from "./model";
 import { JustState } from "./reducer";
 
@@ -12,7 +13,8 @@ export const handleFolderMetaLoaded = (
         ...state,
         folderMeta: {
             state: FolderMetaState.Loaded,
-            fileTree: toFileTree(event.meta)
+            fileTree: toFileTree(event.meta),
+            errors: []
         }
     };
     return JustState(newState);
@@ -46,6 +48,53 @@ export const handleFileDownloadRequested = (
     return [newState, downloadCommand];
 };
 
+export const handleFileDownloaded = (
+    state: AppState,
+    event: FileDownloadedEvent
+): [AppState, AppCommand] => {
+    const nextCommandSeq = state.commandSeq + 1;
+    const newState: AppState = {
+        ...state,
+        commandSeq: nextCommandSeq,
+    };
+    return [newState, ViewFile(nextCommandSeq, event.path)];
+};
+
+export const handleFileDownloadFailed = (
+    state: AppState,
+    event: FileDownloadFailedEvent
+): [AppState, AppCommand] => {
+    if (state.folderMeta.state == FolderMetaState.Loaded) {
+        const newState: AppState = {
+            ...state,
+            folderMeta: {
+                ...state.folderMeta,
+                errors: [event.err, ...state.folderMeta.errors]
+            }
+        };
+        return JustState(newState);
+    }
+    return JustState(state);
+};
+
+export const handleOpeningFileFailed = (
+    state: AppState,
+    event: OpeningFileFailedEvent
+): [AppState, AppCommand] => {
+    if (state.folderMeta.state == FolderMetaState.Loaded) {
+        const newState: AppState = {
+            ...state,
+            folderMeta: {
+                ...state.folderMeta,
+                errors: [event.err, ...state.folderMeta.errors]
+            }
+        };
+        return JustState(newState);
+    }
+    return JustState(state);
+};
+
+// Helpers
 
 // TODO: This is written by AI but seem to work fine
 // TODO: brush it up and --unit-test--

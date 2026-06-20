@@ -32,15 +32,16 @@ export const LoadFolderMeta = (seq: number): LoadFolderMetaCommand => ({
             const folderMetaCacheFileName = `${SKYBOX_DEVICEID}_foldermeta.json`;
             const metaCache = await loadFromCache(folderMetaCacheFileName);
 
-            // Retrieve folder meta from cloud, if changed
+            // retrieve folder meta from cloud, if changed
             const folderMetaResult = await downloadFolderMeta(
                 SKYBOX_BUCKET, SKYBOX_DEVICEID, metaCache.etag);
 
+            // got new meta
             if (folderMetaResult.type == FolderMetaResultType.FolderMeta) {
                 // TODO: now I just assert. I need to propertly sanitize
                 const meta = JSON.parse(folderMetaResult.meta) as FolderMeta;
 
-                // Cache the last value
+                // update cache
                 if (folderMetaResult.etag) {
                     const folderMetaCache: FolderMetaCached = {
                         meta,
@@ -49,12 +50,13 @@ export const LoadFolderMeta = (seq: number): LoadFolderMetaCommand => ({
                     saveFolderMeta(folderMetaCacheFileName, JSON.stringify(folderMetaCache));
                 }
 
-                // Dispatch the result
+                // dispatch the result
                 dispatch({
                     type: EventType.FolderMetaLoaded,
                     meta,
                 });
             } else {
+                // using cached meta
                 // console.log("using cached meta");
                 dispatch({
                     type: EventType.FolderMetaLoaded,

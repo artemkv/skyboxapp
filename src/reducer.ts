@@ -1,4 +1,4 @@
-import { handleFileDownloadRequested, handleFolderMetaLoaded, handleFolderMetaLoadingFailed } from "./business";
+import { handleFileDownloaded, handleFileDownloadFailed, handleFileDownloadRequested, handleFolderMetaLoaded, handleFolderMetaLoadingFailed, handleOpeningFileFailed } from "./business";
 import { AppCommand, DoNothing } from "./commands";
 import { AppEvent, EventType } from "./events";
 import { AppState } from "./model";
@@ -20,13 +20,22 @@ export const Reducer = (
     if (event.type == EventType.FolderMetaLoaded) {
         return handleFolderMetaLoaded(state, event);
     }
-
     if (event.type == EventType.FolderMetaLoadingFailed) {
         return handleFolderMetaLoadingFailed(state, event);
     }
 
     if (event.type == EventType.FileDownloadRequested) {
         return handleFileDownloadRequested(state, event);
+    }
+    if (event.type == EventType.FileDownloaded) {
+        return handleFileDownloaded(state, event);
+    }
+    if (event.type == EventType.FileDownloadFailed) {
+        return handleFileDownloadFailed(state, event);
+    }
+
+    if (event.type == EventType.OpeningFileFailed) {
+        return handleOpeningFileFailed(state, event);
     }
 
     console.error(

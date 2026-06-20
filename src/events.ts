@@ -9,6 +9,10 @@ export enum EventType {
     FolderMetaLoadingFailed,
 
     FileDownloadRequested,
+    FileDownloaded,
+    FileDownloadFailed,
+
+    OpeningFileFailed,
 }
 
 export interface NeverEvent {
@@ -30,8 +34,26 @@ export interface FileDownloadRequestedEvent {
     file: FileTreeNode_File;
 }
 
+export interface FileDownloadedEvent {
+    type: EventType.FileDownloaded;
+    path: string;
+}
+
+export interface FileDownloadFailedEvent {
+    type: EventType.FileDownloadFailed;
+    err: string;
+}
+
+export interface OpeningFileFailedEvent {
+    type: EventType.OpeningFileFailed;
+    err: string;
+}
+
 export type AppEvent =
     | NeverEvent
     | FolderMetaLoadedEvent
     | FolderMetaLoadingFailedEvent
-    | FileDownloadRequestedEvent;
+    | FileDownloadRequestedEvent
+    | FileDownloadedEvent
+    | FileDownloadFailedEvent
+    | OpeningFileFailedEvent;

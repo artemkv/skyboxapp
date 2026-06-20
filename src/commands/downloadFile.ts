@@ -1,5 +1,6 @@
 import { CommandType, DownloadFileCommand } from "../commands";
 import { decrypt, deriveMasterKey } from "../crypto";
+import { EventType } from "../events";
 import { PATH_SEPARATOR, saveFile } from "../fsconnect";
 import { FileMeta } from "../model";
 import { downloadObject, getFileMeta } from "../s3connect";
@@ -70,29 +71,30 @@ export const DownloadFile = (seq: number, fullPath: string[], fileName: string, 
             console.log("Downloading encrypted file");
             const bytes = await downloadObject(SKYBOX_BUCKET, SKYBOX_DEVICEID, objectKey);
 
-            // decrypt
+            // decrypt file
             console.log("Decrypting");
             const decrypted = await decrypt(
                 bytes,
                 fileEncryptionKey,
                 base64ToUint8Array(fileNonce));
 
-            // save
+            // save file
             console.log("Saving file");
             const folderPath = [SKYBOX_LOCAL_FOLDER, ...fullPath].join(PATH_SEPARATOR);
+            const path = `${folderPath}${PATH_SEPARATOR}${fileName}`;
             const blob = new Blob([decrypted]);
-            await saveFile(`${folderPath}${PATH_SEPARATOR}${fileName}`, blob);
+            await saveFile(path, blob);
 
-            /*            dispatch({
-                            type: EventType.FolderMetaLoaded,
-                            meta,
-                        });*/
+            // dispatch result
+            dispatch({
+                type: EventType.FileDownloaded,
+                path,
+            });
         } catch (err) {
-            console.error(err);
-            /*            dispatch({
-                            type: EventType.FolderMetaLoadingFailed,
-                            err: `${err}`,
-                        });*/
+            dispatch({
+                type: EventType.FileDownloadFailed,
+                err: `${err}`,
+            });
         }
     },
 });

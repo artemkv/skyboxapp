@@ -8,6 +8,8 @@ export enum CommandType {
 
     LoadFolderMeta,
     DownloadFile,
+
+    ViewFile
 }
 
 export interface DoNothingCommand extends Command<AppEvent> {
@@ -30,11 +32,17 @@ export interface DownloadFileCommand extends Command<AppEvent> {
     objectKey: string;
 }
 
+export interface ViewFileCommand extends Command<AppEvent> {
+    type: CommandType.ViewFile;
+    path: string;
+}
+
 export type AppCommand =
     | DoNothingCommand
     | DoManyCommand
     | LoadFolderMetaCommand
-    | DownloadFileCommand;
+    | DownloadFileCommand
+    | ViewFileCommand;
 
 export const DoNothing: DoNothingCommand = {
     seq: -1,
