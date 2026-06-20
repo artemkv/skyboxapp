@@ -1,5 +1,5 @@
 import { CommandType, LoadAppConfigCommand } from "../commands";
-import { loadConfig } from "../configztorage";
+import { loadConfig } from "../configstorage";
 import { EventType } from "../events";
 
 export const LoadAppConfig = (seq: number): LoadAppConfigCommand => ({

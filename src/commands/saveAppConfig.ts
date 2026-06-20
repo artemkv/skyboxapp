@@ -1,5 +1,5 @@
 import { CommandType, SaveAppConfigCommand } from "../commands";
-import { saveConfig } from "../configztorage";
+import { saveConfig } from "../configstorage";
 import { EventType } from "../events";
 import { AppConfig } from "../model";
 
