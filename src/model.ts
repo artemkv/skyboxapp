@@ -55,6 +55,7 @@ export interface FolderMetaLoaded {
     state: FolderMetaState.Loaded;
     fileTree: FileTreeNode;
     errors: string[];
+    pendingDownload: boolean;
 }
 
 export type FolderMetaContainer =

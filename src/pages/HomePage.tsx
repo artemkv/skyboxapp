@@ -35,7 +35,10 @@ const HomePage: React.FC<HomePageProps> = (props) => {
       return <div>404 Not found</div>
     }
 
-    return <FolderView folder={folder} dispatch={dispatch} />;
+    return <FolderView
+      pendingDownload={state.folderMeta.pendingDownload}
+      folder={folder}
+      dispatch={dispatch} />;
   }
 
   return (

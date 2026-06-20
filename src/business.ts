@@ -38,26 +38,40 @@ export const handleFileDownloadRequested = (
     state: AppState,
     event: FileDownloadRequestedEvent
 ): [AppState, AppCommand] => {
-    const nextCommandSeq = state.commandSeq + 1;
-    const newState: AppState = {
-        ...state,
-        commandSeq: nextCommandSeq,
-    };
-    const downloadCommand = DownloadFile(
-        nextCommandSeq, event.file.fullPath, event.file.name, event.file.objectKey);
-    return [newState, downloadCommand];
+    if (state.folderMeta.state == FolderMetaState.Loaded) {
+        const nextCommandSeq = state.commandSeq + 1;
+        const newState: AppState = {
+            ...state,
+            commandSeq: nextCommandSeq,
+            folderMeta: {
+                ...state.folderMeta,
+                pendingDownload: true
+            }
+        };
+        const downloadCommand = DownloadFile(
+            nextCommandSeq, event.file.fullPath, event.file.name, event.file.objectKey);
+        return [newState, downloadCommand];
+    }
+    return JustState(state);
 };
 
 export const handleFileDownloaded = (
     state: AppState,
     event: FileDownloadedEvent
 ): [AppState, AppCommand] => {
-    const nextCommandSeq = state.commandSeq + 1;
-    const newState: AppState = {
-        ...state,
-        commandSeq: nextCommandSeq,
-    };
-    return [newState, ViewFile(nextCommandSeq, event.path)];
+    if (state.folderMeta.state == FolderMetaState.Loaded) {
+        const nextCommandSeq = state.commandSeq + 1;
+        const newState: AppState = {
+            ...state,
+            commandSeq: nextCommandSeq,
+            folderMeta: {
+                ...state.folderMeta,
+                pendingDownload: false
+            }
+        };
+        return [newState, ViewFile(nextCommandSeq, event.path)];
+    }
+    return JustState(state);
 };
 
 export const handleFileDownloadFailed = (
@@ -69,6 +83,7 @@ export const handleFileDownloadFailed = (
             ...state,
             folderMeta: {
                 ...state.folderMeta,
+                pendingDownload: false,
                 errors: [event.err, ...state.folderMeta.errors]
             }
         };

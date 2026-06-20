@@ -5,13 +5,16 @@ import "./FolderView.css";
 import { memo } from "react";
 import { Dispatch } from "../hooks/useReducer";
 import { AppEvent, EventType } from "../events";
+import ProgressIndicator from "./ProgressIndicator";
 
 interface FolderViewProps {
+    pendingDownload: boolean;
     folder: FileTreeNode_Folder
     dispatch: Dispatch<AppEvent>;
 }
 
 const FolderView: React.FC<FolderViewProps> = memo((props) => {
+    const pendingDownload = props.pendingDownload;
     const folder = props.folder;
     const dispatch = props.dispatch;
 
@@ -30,9 +33,6 @@ const FolderView: React.FC<FolderViewProps> = memo((props) => {
     });
 
     const onFileClicked = (node: FileTreeNode_File) => {
-        // TODO:
-        console.log("CLICKED!!!");
-
         dispatch({
             type: EventType.FileDownloadRequested,
             file: node
@@ -68,6 +68,10 @@ const FolderView: React.FC<FolderViewProps> = memo((props) => {
     }
 
     return <div className="folder-view">
+        {pendingDownload ?
+            <div className="overlay">
+                <ProgressIndicator />
+            </div> : null}
         {nodes.map((x, idx) => getFolderEntry(x, idx))}
     </div>
 });
