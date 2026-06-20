@@ -2,9 +2,8 @@ import { CommandType, DownloadFileCommand } from "../commands";
 import { decrypt, deriveMasterKey } from "../crypto";
 import { EventType } from "../events";
 import { getFileStats, PATH_SEPARATOR, saveFile } from "../fsconnect";
-import { FileMeta, FileTreeNode_File } from "../model";
+import { AppConfig, FileMeta, FileTreeNode_File } from "../model";
 import { downloadObject, getFileMeta } from "../s3connect";
-import { SKYBOX_BUCKET, SKYBOX_DEVICEID, SKYBOX_SECRET } from "../UNSAFE";
 
 const SKYBOX_LOCAL_FOLDER = "Skybox";
 
@@ -42,14 +41,15 @@ export function base64ToUint8Array(base64: string): Uint8Array {
     return bytes;
 }
 
-const makeLocalFilePath = (fullPath: string[], fileName: string) => {
-    const folder = [SKYBOX_LOCAL_FOLDER, SKYBOX_DEVICEID, ...fullPath].join(PATH_SEPARATOR);
+const makeLocalFilePath = (deviceId: string, fullPath: string[], fileName: string) => {
+    const folder = [SKYBOX_LOCAL_FOLDER, deviceId, ...fullPath].join(PATH_SEPARATOR);
     return `${folder}${PATH_SEPARATOR}${fileName}`
 }
 
-export const DownloadFile = (seq: number, fileNode: FileTreeNode_File): DownloadFileCommand => ({
+export const DownloadFile = (seq: number, appConfig: AppConfig, fileNode: FileTreeNode_File): DownloadFileCommand => ({
     seq,
     type: CommandType.DownloadFile,
+    appConfig,
     fileNode,
     execute: async (dispatch) => {
         const fullPath = fileNode.fullPath;
@@ -59,7 +59,8 @@ export const DownloadFile = (seq: number, fileNode: FileTreeNode_File): Download
 
         try {
             // get local file stats
-            const path = makeLocalFilePath(fullPath, fileName);
+            const path = makeLocalFilePath(
+                appConfig.skyboxConfigs.deviceId, fullPath, fileName);
             const stats = await getFileStats(path);
 
             // TODO: check etag
@@ -77,7 +78,11 @@ export const DownloadFile = (seq: number, fileNode: FileTreeNode_File): Download
 
             // get file metadata
             // console.log("Retrieving file metadata");
-            const fileMetaResult = await getFileMeta(SKYBOX_BUCKET, SKYBOX_DEVICEID, objectKey);
+            const fileMetaResult = await getFileMeta(
+                appConfig.awsConfig,
+                appConfig.skyboxConfigs.bucket,
+                appConfig.skyboxConfigs.deviceId,
+                objectKey);
             const { fileNonce,
                 fileEncryptionKeyEncrypted,
                 fileEncryptionKeyNonce } = parseFileMeta(fileMetaResult.meta);
@@ -85,7 +90,8 @@ export const DownloadFile = (seq: number, fileNode: FileTreeNode_File): Download
             // get master key
             // TODO: salt should be random and be stored on the account
             // console.log("Deriving master key");
-            const masterKey = deriveMasterKey(SKYBOX_SECRET, "saltsaltsaltsalt");
+            const masterKey = deriveMasterKey(
+                appConfig.skyboxConfigs.secret, "saltsaltsaltsalt");
 
             // decrypt file key
             // console.log("Decrypting file key");
@@ -96,7 +102,11 @@ export const DownloadFile = (seq: number, fileNode: FileTreeNode_File): Download
 
             // get raw bytes
             // console.log("Downloading encrypted file");
-            const bytes = await downloadObject(SKYBOX_BUCKET, SKYBOX_DEVICEID, objectKey);
+            const bytes = await downloadObject(
+                appConfig.awsConfig,
+                appConfig.skyboxConfigs.bucket,
+                appConfig.skyboxConfigs.deviceId,
+                objectKey);
 
             // decrypt file
             // console.log("Decrypting");

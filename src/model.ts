@@ -1,3 +1,37 @@
+// Config
+
+export interface SkyboxConfig {
+    bucket: string;
+    deviceId: string;
+    secret: string;
+}
+
+export interface AwsConfig {
+    region: string;
+    accessKey: string;
+    secretKey: string;
+}
+
+export interface AppConfig {
+    awsConfig: AwsConfig;
+    // TODO: should support multiple configs for multiple device ids
+    // TODO: and being able to switch between devices
+    skyboxConfigs: SkyboxConfig;
+}
+
+export const EmptyAppConfig: AppConfig = {
+    awsConfig: {
+        region: "",
+        accessKey: "",
+        secretKey: "",
+    },
+    skyboxConfigs: {
+        bucket: "",
+        deviceId: "",
+        secret: ""
+    }
+}
+
 // File tree
 
 export enum TreeNodeType {
@@ -36,42 +70,6 @@ export interface FolderMeta {
     items: FolderMetaItem[]
 }
 
-export enum FolderMetaState {
-    Loading,
-    LoadingFailed,
-    Loaded,
-};
-
-export interface FolderMetaLoading {
-    state: FolderMetaState.Loading;
-}
-
-export interface FolderMetaLoadingFailed {
-    state: FolderMetaState.LoadingFailed;
-    err: string;
-}
-
-export interface FolderMetaLoaded {
-    state: FolderMetaState.Loaded;
-    fileTree: FileTreeNode;
-    errors: string[];
-    pendingDownload: boolean;
-}
-
-export type FolderMetaContainer =
-    | FolderMetaLoading
-    | FolderMetaLoadingFailed
-    | FolderMetaLoaded;
-
-export const LoadingFolderMeta: FolderMetaContainer = {
-    state: FolderMetaState.Loading
-};
-
-export interface FolderMetaCached {
-    meta: FolderMeta,
-    etag: string
-}
-
 // File meta
 
 export interface FileMeta {
@@ -80,17 +78,78 @@ export interface FileMeta {
     fileEncryptionKeyNonce: string
 }
 
+// In app state
+
+export enum InAppState {
+    AppConfigLoading,
+    AppConfigLoadingFailed,
+    AppConfigSaving,
+    AppConfigSavingFailed,
+    FolderMetaLoading,
+    FolderMetaLoadingFailed,
+    Ready,
+};
+
+export interface InAppState_AppConfigLoading {
+    state: InAppState.AppConfigLoading;
+}
+
+export interface InAppState_AppConfigLoadingFailed {
+    state: InAppState.AppConfigLoadingFailed;
+    err: string;
+}
+
+export interface InAppState_AppConfigSaving {
+    state: InAppState.AppConfigSaving;
+}
+
+export interface InAppState_AppConfigSavingFailed {
+    state: InAppState.AppConfigSavingFailed;
+    appConfig: AppConfig;
+    err: string;
+}
+
+export interface InAppState_FolderMetaLoading {
+    state: InAppState.FolderMetaLoading;
+    appConfig: AppConfig;
+}
+
+export interface InAppState_FolderMetaLoadingFailed {
+    state: InAppState.FolderMetaLoadingFailed;
+    appConfig: AppConfig;
+    err: string;
+}
+
+export interface InAppState_Ready {
+    state: InAppState.Ready;
+    appConfig: AppConfig;
+    fileTree: FileTreeNode;
+    pendingDownload: boolean;
+    errors: string[];
+}
+
+export type InAppStateCurrent =
+    | InAppState_AppConfigLoading
+    | InAppState_AppConfigLoadingFailed
+    | InAppState_AppConfigSaving
+    | InAppState_AppConfigSavingFailed
+    | InAppState_FolderMetaLoading
+    | InAppState_FolderMetaLoadingFailed
+    | InAppState_Ready;
+
 // App state
 
 export type AppState = {
     // Last command issued
     commandSeq: number;
-    folderMeta: FolderMetaContainer;
+    inAppState: InAppStateCurrent;
 };
 
 // Initial state
 
 export const IntialState: AppState = {
     commandSeq: 0,
-    folderMeta: LoadingFolderMeta,
+    inAppState: {
+        state: InAppState.AppConfigLoading
+    },
 };

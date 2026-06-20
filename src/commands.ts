@@ -1,15 +1,18 @@
-import { LoadFolderMeta } from "./commands/loadFolderMeta";
+import { LoadAppConfig } from "./commands/loadAppConfig";
 import { AppEvent } from "./events";
 import { Command } from "./hooks/useReducer";
-import { FileTreeNode_File } from "./model";
+import { AppConfig, FileTreeNode_File } from "./model";
 
 export enum CommandType {
     DoNothing,
     DoMany,
 
-    LoadFolderMeta,
-    DownloadFile,
+    LoadAppConfig,
+    SaveAppConfig,
 
+    LoadFolderMeta,
+
+    DownloadFile,
     ViewFile
 }
 
@@ -22,12 +25,23 @@ export interface DoManyCommand extends Command<AppEvent> {
     commands: AppCommand[];
 }
 
+export interface LoadAppConfigCommand extends Command<AppEvent> {
+    type: CommandType.LoadAppConfig;
+}
+
+export interface SaveAppConfigCommand extends Command<AppEvent> {
+    type: CommandType.SaveAppConfig;
+    appConfig: AppConfig;
+}
+
 export interface LoadFolderMetaCommand extends Command<AppEvent> {
     type: CommandType.LoadFolderMeta;
+    appConfig: AppConfig;
 }
 
 export interface DownloadFileCommand extends Command<AppEvent> {
     type: CommandType.DownloadFile;
+    appConfig: AppConfig;
     fileNode: FileTreeNode_File;
 }
 
@@ -39,6 +53,8 @@ export interface ViewFileCommand extends Command<AppEvent> {
 export type AppCommand =
     | DoNothingCommand
     | DoManyCommand
+    | LoadAppConfigCommand
+    | SaveAppConfigCommand
     | LoadFolderMetaCommand
     | DownloadFileCommand
     | ViewFileCommand;
@@ -60,4 +76,4 @@ export const DoMany = (seq: number, commands: AppCommand[]): DoManyCommand => ({
 
 // Initial command
 
-export const InitialCommand = LoadFolderMeta(0);
+export const InitialCommand = LoadAppConfig(0);

@@ -1,54 +1,143 @@
 import { AppCommand } from "./commands";
 import { DownloadFile } from "./commands/downloadFile";
+import { LoadAppConfig } from "./commands/loadAppConfig";
+import { LoadFolderMeta } from "./commands/loadFolderMeta";
+import { SaveAppConfig } from "./commands/saveAppConfig";
 import { ViewFile } from "./commands/viewFile";
-import { FileDownloadedEvent, FileDownloadFailedEvent, FileDownloadRequestedEvent, FolderMetaLoadedEvent, FolderMetaLoadingFailedEvent, OpeningFileFailedEvent } from "./events";
-import { AppState, FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, FolderMeta, FolderMetaLoaded, FolderMetaState, TreeNodeType } from "./model";
+import { AppConfigLoadedEvent, AppConfigLoadingFailedEvent, AppConfigSavingFailedEvent, AppConfigSubmittedEvent, FileDownloadedEvent, FileDownloadFailedEvent, FileDownloadRequestedEvent, FolderMetaLoadedEvent, FolderMetaLoadingFailedEvent, OpeningFileFailedEvent } from "./events";
+import { AppState, FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, FolderMeta, InAppState, TreeNodeType } from "./model";
 import { JustState } from "./reducer";
 
-export const handleFolderMetaLoaded = (
+export const handleAppConfigLoaded = (
     state: AppState,
-    event: FolderMetaLoadedEvent
+    event: AppConfigLoadedEvent
 ): [AppState, AppCommand] => {
+    const nextCommandSeq = state.commandSeq + 1;
     const newState: AppState = {
         ...state,
-        folderMeta: {
-            state: FolderMetaState.Loaded,
-            fileTree: toFileTree(event.meta),
-            errors: []
+        commandSeq: nextCommandSeq,
+        inAppState: {
+            state: InAppState.FolderMetaLoading,
+            appConfig: event.appConfig
         }
     };
-    return JustState(newState);
+    return [newState, LoadFolderMeta(nextCommandSeq, event.appConfig)];
 };
 
-export const handleFolderMetaLoadingFailed = (
+export const handleAppConfigLoadingFailed = (
     state: AppState,
-    event: FolderMetaLoadingFailedEvent
+    event: AppConfigLoadingFailedEvent
 ): [AppState, AppCommand] => {
     const newState: AppState = {
         ...state,
-        folderMeta: {
-            state: FolderMetaState.LoadingFailed,
+        inAppState: {
+            state: InAppState.AppConfigLoadingFailed,
             err: event.err
         }
     };
     return JustState(newState);
 };
 
+export const handleAppConfigSubmitted = (
+    state: AppState,
+    event: AppConfigSubmittedEvent
+): [AppState, AppCommand] => {
+    const nextCommandSeq = state.commandSeq + 1;
+    const newState: AppState = {
+        ...state,
+        commandSeq: nextCommandSeq,
+        inAppState: {
+            state: InAppState.AppConfigSaving,
+        }
+    };
+    return [newState, SaveAppConfig(nextCommandSeq, event.appConfig)];
+};
+
+export const handleAppConfigSaved = (
+    state: AppState,
+): [AppState, AppCommand] => {
+    const nextCommandSeq = state.commandSeq + 1;
+    const newState: AppState = {
+        ...state,
+        commandSeq: nextCommandSeq,
+        inAppState: {
+            state: InAppState.AppConfigLoading,
+            // TODO: take advantage of an error to show in the config view
+        }
+    };
+    return [newState, LoadAppConfig(nextCommandSeq)];
+};
+
+export const handleAppConfigSavingFailed = (
+    state: AppState,
+    event: AppConfigSavingFailedEvent
+): [AppState, AppCommand] => {
+    const newState: AppState = {
+        ...state,
+        inAppState: {
+            state: InAppState.AppConfigSavingFailed,
+            appConfig: event.appConfig,
+            err: event.err
+        }
+    };
+    return JustState(newState);
+};
+
+export const handleFolderMetaLoaded = (
+    state: AppState,
+    event: FolderMetaLoadedEvent
+): [AppState, AppCommand] => {
+    if (state.inAppState.state == InAppState.FolderMetaLoading) {
+        const newState: AppState = {
+            ...state,
+            inAppState: {
+                state: InAppState.Ready,
+                appConfig: state.inAppState.appConfig,
+                fileTree: toFileTree(event.meta),
+                pendingDownload: false,
+                errors: []
+            }
+        };
+        return JustState(newState);
+    }
+    return JustState(state);
+};
+
+// TODO: depending on the error, we could retry
+export const handleFolderMetaLoadingFailed = (
+    state: AppState,
+    event: FolderMetaLoadingFailedEvent
+): [AppState, AppCommand] => {
+    if (state.inAppState.state == InAppState.FolderMetaLoading) {
+        const newState: AppState = {
+            ...state,
+            inAppState: {
+                state: InAppState.FolderMetaLoadingFailed,
+                appConfig: state.inAppState.appConfig,
+                err: event.err
+            }
+        };
+        return JustState(newState);
+    }
+    return JustState(state);
+};
+
 export const handleFileDownloadRequested = (
     state: AppState,
     event: FileDownloadRequestedEvent
 ): [AppState, AppCommand] => {
-    if (state.folderMeta.state == FolderMetaState.Loaded) {
+    if (state.inAppState.state == InAppState.Ready) {
         const nextCommandSeq = state.commandSeq + 1;
         const newState: AppState = {
             ...state,
             commandSeq: nextCommandSeq,
-            folderMeta: {
-                ...state.folderMeta,
+            inAppState: {
+                ...state.inAppState,
                 pendingDownload: true
             }
         };
-        return [newState, DownloadFile(nextCommandSeq, event.fileNode)];
+        return [newState,
+            DownloadFile(nextCommandSeq, state.inAppState.appConfig, event.fileNode)];
     }
     return JustState(state);
 };
@@ -57,13 +146,13 @@ export const handleFileDownloaded = (
     state: AppState,
     event: FileDownloadedEvent
 ): [AppState, AppCommand] => {
-    if (state.folderMeta.state == FolderMetaState.Loaded) {
+    if (state.inAppState.state == InAppState.Ready) {
         const nextCommandSeq = state.commandSeq + 1;
         const newState: AppState = {
             ...state,
             commandSeq: nextCommandSeq,
-            folderMeta: {
-                ...state.folderMeta,
+            inAppState: {
+                ...state.inAppState,
                 pendingDownload: false
             }
         };
@@ -76,13 +165,13 @@ export const handleFileDownloadFailed = (
     state: AppState,
     event: FileDownloadFailedEvent
 ): [AppState, AppCommand] => {
-    if (state.folderMeta.state == FolderMetaState.Loaded) {
+    if (state.inAppState.state == InAppState.Ready) {
         const newState: AppState = {
             ...state,
-            folderMeta: {
-                ...state.folderMeta,
+            inAppState: {
+                ...state.inAppState,
                 pendingDownload: false,
-                errors: [event.err, ...state.folderMeta.errors]
+                errors: [event.err, ...state.inAppState.errors]
             }
         };
         return JustState(newState);
@@ -94,12 +183,12 @@ export const handleOpeningFileFailed = (
     state: AppState,
     event: OpeningFileFailedEvent
 ): [AppState, AppCommand] => {
-    if (state.folderMeta.state == FolderMetaState.Loaded) {
+    if (state.inAppState.state == InAppState.Ready) {
         const newState: AppState = {
             ...state,
-            folderMeta: {
-                ...state.folderMeta,
-                errors: [event.err, ...state.folderMeta.errors]
+            inAppState: {
+                ...state.inAppState,
+                errors: [event.err, ...state.inAppState.errors]
             }
         };
         return JustState(newState);
@@ -174,16 +263,16 @@ export const toFileTree = (folderMeta: FolderMeta): FileTreeNode => {
 // TODO: written by AI
 // TODO: brush it up and unit-test
 // TODO: fails on spaces, so need to make sure to decode the url
-export const getFolder = (path: string, meta: FolderMetaLoaded): FileTreeNode_Folder | null => {
+export const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Folder | null => {
     if (!path) {
-        return meta.fileTree as FileTreeNode_Folder;
+        return fileTree as FileTreeNode_Folder;
     }
 
     const parts = path
         .split("/")
         .filter(Boolean);
 
-    let current: FileTreeNode_Folder = meta.fileTree as FileTreeNode_Folder;
+    let current: FileTreeNode_Folder = fileTree as FileTreeNode_Folder;
 
     for (const part of parts) {
         const next = current.nodes.find(

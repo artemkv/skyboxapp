@@ -1,4 +1,4 @@
-import { handleFileDownloaded, handleFileDownloadFailed, handleFileDownloadRequested, handleFolderMetaLoaded, handleFolderMetaLoadingFailed, handleOpeningFileFailed } from "./business";
+import { handleAppConfigLoaded, handleAppConfigLoadingFailed, handleAppConfigSaved, handleAppConfigSavingFailed, handleAppConfigSubmitted, handleFileDownloaded, handleFileDownloadFailed, handleFileDownloadRequested, handleFolderMetaLoaded, handleFolderMetaLoadingFailed, handleOpeningFileFailed } from "./business";
 import { AppCommand, DoNothing } from "./commands";
 import { AppEvent, EventType } from "./events";
 import { AppState } from "./model";
@@ -16,6 +16,23 @@ export const Reducer = (
     /*console.log(
         `Reducing event '${EventType[event.type]} ${JSON.stringify(event)}'`
     );*/
+
+    if (event.type == EventType.AppConfigLoaded) {
+        return handleAppConfigLoaded(state, event);
+    }
+    if (event.type == EventType.AppConfigLoadingFailed) {
+        return handleAppConfigLoadingFailed(state, event);
+    }
+
+    if (event.type == EventType.AppConfigSubmitted) {
+        return handleAppConfigSubmitted(state, event);
+    }
+    if (event.type == EventType.AppConfigSaved) {
+        return handleAppConfigSaved(state);
+    }
+    if (event.type == EventType.AppConfigSavingFailed) {
+        return handleAppConfigSavingFailed(state, event);
+    }
 
     if (event.type == EventType.FolderMetaLoaded) {
         return handleFolderMetaLoaded(state, event);

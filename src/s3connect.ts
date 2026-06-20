@@ -1,13 +1,5 @@
 import { S3Client, GetObjectCommand, HeadObjectCommand, S3ServiceException } from "@aws-sdk/client-s3";
-import { AWS_ACCESS_KEY_ID, AWS_REGION, AWS_SECRET_ACCESS_KEY } from './UNSAFE.js';
-
-const s3client = new S3Client({
-    region: AWS_REGION,
-    credentials: {
-        accessKeyId: AWS_ACCESS_KEY_ID,
-        secretAccessKey: AWS_SECRET_ACCESS_KEY,
-    },
-});
+import { AwsConfig } from "./model";
 
 const makeFolderMetaKey = (deviceId: string): string => {
     return `${deviceId}/_folder.meta`;
@@ -35,7 +27,18 @@ export interface FolderMetaResult_NotModified {
 export type FolderMetaResult = FolderMetaResult_FolderMeta | FolderMetaResult_NotModified;
 
 export const downloadFolderMeta = async (
-    bucket: string, deviceId: string, etag: string): Promise<FolderMetaResult> => {
+    awsConfig: AwsConfig,
+    bucket: string,
+    deviceId: string,
+    etag: string): Promise<FolderMetaResult> => {
+    const s3client = new S3Client({
+        region: awsConfig.region,
+        credentials: {
+            accessKeyId: awsConfig.accessKey,
+            secretAccessKey: awsConfig.secretKey,
+        },
+    });
+
     const key = makeFolderMetaKey(deviceId);
     const command = new GetObjectCommand({
         Bucket: bucket,
@@ -72,7 +75,18 @@ export interface FileMetaResult {
 }
 
 export const getFileMeta = async (
-    bucket: string, deviceId: string, objectKey: string): Promise<FileMetaResult> => {
+    awsConfig: AwsConfig,
+    bucket: string,
+    deviceId: string,
+    objectKey: string): Promise<FileMetaResult> => {
+    const s3client = new S3Client({
+        region: awsConfig.region,
+        credentials: {
+            accessKeyId: awsConfig.accessKey,
+            secretAccessKey: awsConfig.secretKey,
+        },
+    });
+
     const key = makeFullObjectKey(deviceId, objectKey);
     const command = new HeadObjectCommand({
         Bucket: bucket,
@@ -93,7 +107,18 @@ export const getFileMeta = async (
 // TODO: this now downloads everything to memory
 // TODO: Ideally, I should stream. But that would require native plugin
 export const downloadObject = async (
-    bucket: string, deviceId: string, objectKey: string): Promise<Uint8Array> => {
+    awsConfig: AwsConfig,
+    bucket: string,
+    deviceId: string,
+    objectKey: string): Promise<Uint8Array> => {
+    const s3client = new S3Client({
+        region: awsConfig.region,
+        credentials: {
+            accessKeyId: awsConfig.accessKey,
+            secretAccessKey: awsConfig.secretKey,
+        },
+    });
+
     const key = makeFullObjectKey(deviceId, objectKey);
     const command = new GetObjectCommand({
         Bucket: bucket,

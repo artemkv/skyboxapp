@@ -1,9 +1,13 @@
 import { CommandType, LoadFolderMetaCommand } from "../commands";
 import { EventType } from "../events";
 import { loadFolderMeta, saveFolderMeta } from "../fsconnect";
-import { FolderMeta, FolderMetaCached } from "../model";
+import { AppConfig, FolderMeta } from "../model";
 import { downloadFolderMeta, FolderMetaResultType } from "../s3connect";
-import { SKYBOX_BUCKET, SKYBOX_DEVICEID } from "../UNSAFE";
+
+export interface FolderMetaCached {
+    meta: FolderMeta,
+    etag: string
+}
 
 const EmptyFolderMetaCache: FolderMetaCached = {
     meta: {
@@ -23,18 +27,22 @@ const loadFromCache = async (folderMetaCacheFileName: string): Promise<FolderMet
     }
 }
 
-export const LoadFolderMeta = (seq: number): LoadFolderMetaCommand => ({
+export const LoadFolderMeta = (seq: number, appConfig: AppConfig): LoadFolderMetaCommand => ({
     seq,
     type: CommandType.LoadFolderMeta,
+    appConfig,
     execute: async (dispatch) => {
         try {
             // try loading from cache first
-            const folderMetaCacheFileName = `${SKYBOX_DEVICEID}_foldermeta.json`;
+            const folderMetaCacheFileName = `${appConfig.skyboxConfigs.deviceId}_foldermeta.json`;
             const metaCache = await loadFromCache(folderMetaCacheFileName);
 
             // retrieve folder meta from cloud, if changed
             const folderMetaResult = await downloadFolderMeta(
-                SKYBOX_BUCKET, SKYBOX_DEVICEID, metaCache.etag);
+                appConfig.awsConfig,
+                appConfig.skyboxConfigs.bucket,
+                appConfig.skyboxConfigs.deviceId,
+                metaCache.etag);
 
             // got new meta
             if (folderMetaResult.type == FolderMetaResultType.FolderMeta) {

@@ -1,9 +1,16 @@
-import { FileTreeNode_File, FolderMeta } from "./model";
+import { AppConfig, FileTreeNode_File, FolderMeta } from "./model";
 
 export enum EventType {
     // "Never" event is never triggered in the app
     // this is just to make TS happy
     Never,
+
+    AppConfigLoaded,
+    AppConfigLoadingFailed,
+
+    AppConfigSubmitted,
+    AppConfigSaved,
+    AppConfigSavingFailed,
 
     FolderMetaLoaded,
     FolderMetaLoadingFailed,
@@ -17,6 +24,31 @@ export enum EventType {
 
 export interface NeverEvent {
     type: EventType.Never;
+}
+
+export interface AppConfigLoadedEvent {
+    type: EventType.AppConfigLoaded;
+    appConfig: AppConfig;
+}
+
+export interface AppConfigLoadingFailedEvent {
+    type: EventType.AppConfigLoadingFailed;
+    err: string;
+}
+
+export interface AppConfigSubmittedEvent {
+    type: EventType.AppConfigSubmitted;
+    appConfig: AppConfig;
+}
+
+export interface AppConfigSavedEvent {
+    type: EventType.AppConfigSaved;
+}
+
+export interface AppConfigSavingFailedEvent {
+    type: EventType.AppConfigSavingFailed;
+    appConfig: AppConfig;
+    err: string;
 }
 
 export interface FolderMetaLoadedEvent {
@@ -51,6 +83,11 @@ export interface OpeningFileFailedEvent {
 
 export type AppEvent =
     | NeverEvent
+    | AppConfigLoadedEvent
+    | AppConfigLoadingFailedEvent
+    | AppConfigSubmittedEvent
+    | AppConfigSavedEvent
+    | AppConfigSavingFailedEvent
     | FolderMetaLoadedEvent
     | FolderMetaLoadingFailedEvent
     | FileDownloadRequestedEvent
