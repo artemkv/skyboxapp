@@ -4,11 +4,10 @@ General
 
 Download
 
-- After download is done, open the file
-    - Until that is implemented, show toast
+- --After download is done, open the file--
+- Store etags of downloaded files in private folder
 - If already downloaded and matches the etag, skip download, just open
 - While downloading, show some kind of progress indicator
-- Decrypt
 - Show errors
 
 UI
@@ -17,8 +16,9 @@ UI
 
 Security
 
-- Add settings
-- Allow saving settings as JSON (with validation)
+- Add settings screen
+- Allow saving settings as JSON (with validation), 1 JSON per device
+- Allow selecting active device
 - Use those settings to connect to S3
 - Store settings encrypted
 - Derive encryption key from pin
