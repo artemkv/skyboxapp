@@ -1,6 +1,7 @@
 import { LoadFolderMeta } from "./commands/loadFolderMeta";
 import { AppEvent } from "./events";
 import { Command } from "./hooks/useReducer";
+import { FileTreeNode_File } from "./model";
 
 export enum CommandType {
     DoNothing,
@@ -27,9 +28,7 @@ export interface LoadFolderMetaCommand extends Command<AppEvent> {
 
 export interface DownloadFileCommand extends Command<AppEvent> {
     type: CommandType.DownloadFile;
-    fullPath: string[];
-    fileName: string;
-    objectKey: string;
+    fileNode: FileTreeNode_File;
 }
 
 export interface ViewFileCommand extends Command<AppEvent> {

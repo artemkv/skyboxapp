@@ -1,8 +1,8 @@
 import { CommandType, DownloadFileCommand } from "../commands";
 import { decrypt, deriveMasterKey } from "../crypto";
 import { EventType } from "../events";
-import { PATH_SEPARATOR, saveFile } from "../fsconnect";
-import { FileMeta } from "../model";
+import { getFileStats, PATH_SEPARATOR, saveFile } from "../fsconnect";
+import { FileMeta, FileTreeNode_File } from "../model";
 import { downloadObject, getFileMeta } from "../s3connect";
 import { SKYBOX_BUCKET, SKYBOX_DEVICEID, SKYBOX_SECRET } from "../UNSAFE";
 
@@ -47,45 +47,66 @@ const makeLocalFilePath = (fullPath: string[], fileName: string) => {
     return `${folder}${PATH_SEPARATOR}${fileName}`
 }
 
-export const DownloadFile = (seq: number, fullPath: string[], fileName: string, objectKey: string): DownloadFileCommand => ({
+export const DownloadFile = (seq: number, fileNode: FileTreeNode_File): DownloadFileCommand => ({
     seq,
     type: CommandType.DownloadFile,
-    fullPath,
-    fileName,
-    objectKey,
+    fileNode,
     execute: async (dispatch) => {
+        const fullPath = fileNode.fullPath;
+        const fileName = fileNode.name;
+        const objectKey = fileNode.objectKey;
+        const size = fileNode.size;
+
         try {
-            // get master key
-            // TODO: salt should be random and be stored on the account
-            console.log("Deriving master key");
-            const masterKey = deriveMasterKey(SKYBOX_SECRET, "saltsaltsaltsalt");
+            // get local file stats
+            const path = makeLocalFilePath(fullPath, fileName);
+            const stats = await getFileStats(path);
+
+            // TODO: check etag
+            // This will not match when testing on web, 
+            // since in browser it would be stored base64-encoded
+            if (stats && stats.size == size) {
+                // shortcut the download
+                console.log("Already downloaded");
+                dispatch({
+                    type: EventType.FileDownloaded,
+                    path,
+                });
+                return;
+            }
 
             // get file metadata
-            console.log("Retrieving file metadata");
-            const meta = await getFileMeta(SKYBOX_BUCKET, SKYBOX_DEVICEID, objectKey);
-            const { fileNonce, fileEncryptionKeyEncrypted, fileEncryptionKeyNonce } = parseFileMeta(meta);
+            // console.log("Retrieving file metadata");
+            const fileMetaResult = await getFileMeta(SKYBOX_BUCKET, SKYBOX_DEVICEID, objectKey);
+            const { fileNonce,
+                fileEncryptionKeyEncrypted,
+                fileEncryptionKeyNonce } = parseFileMeta(fileMetaResult.meta);
+
+            // get master key
+            // TODO: salt should be random and be stored on the account
+            // console.log("Deriving master key");
+            const masterKey = deriveMasterKey(SKYBOX_SECRET, "saltsaltsaltsalt");
 
             // decrypt file key
-            console.log("Decrypting file key");
+            // console.log("Decrypting file key");
             const fileEncryptionKey = await decrypt(
                 base64ToUint8Array(fileEncryptionKeyEncrypted),
                 masterKey,
                 base64ToUint8Array(fileEncryptionKeyNonce));
 
             // get raw bytes
-            console.log("Downloading encrypted file");
+            // console.log("Downloading encrypted file");
             const bytes = await downloadObject(SKYBOX_BUCKET, SKYBOX_DEVICEID, objectKey);
 
             // decrypt file
-            console.log("Decrypting");
+            // console.log("Decrypting");
             const decrypted = await decrypt(
                 bytes,
                 fileEncryptionKey,
                 base64ToUint8Array(fileNonce));
 
             // save file
-            console.log("Saving file");
-            const path = makeLocalFilePath(fullPath, fileName);
+            // console.log("Saving file");
             const blob = new Blob([decrypted]);
             await saveFile(path, blob);
 

@@ -35,7 +35,7 @@ const FolderView: React.FC<FolderViewProps> = memo((props) => {
     const onFileClicked = (node: FileTreeNode_File) => {
         dispatch({
             type: EventType.FileDownloadRequested,
-            file: node
+            fileNode: node
         });
     }
 

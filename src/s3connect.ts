@@ -66,8 +66,13 @@ export const downloadFolderMeta = async (
     }
 }
 
+export interface FileMetaResult {
+    meta: { [key: string]: string };
+    etag: string;
+}
+
 export const getFileMeta = async (
-    bucket: string, deviceId: string, objectKey: string): Promise<{ [key: string]: string }> => {
+    bucket: string, deviceId: string, objectKey: string): Promise<FileMetaResult> => {
     const key = makeFullObjectKey(deviceId, objectKey);
     const command = new HeadObjectCommand({
         Bucket: bucket,
@@ -79,7 +84,10 @@ export const getFileMeta = async (
         throw new Error(`Error retrieving metadata for '${key}' from '${bucket}'`);
     }
 
-    return response.Metadata;
+    return {
+        meta: response.Metadata,
+        etag: response.ETag ?? ''
+    };
 }
 
 // TODO: this now downloads everything to memory

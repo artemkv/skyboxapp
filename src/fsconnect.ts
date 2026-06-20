@@ -44,3 +44,21 @@ export const saveFile = async (path: string, blob: Blob): Promise<void> => {
         recursive: true
     });
 };
+
+export interface FileStats {
+    size: number;
+}
+
+export const getFileStats = async (path: string): Promise<FileStats | undefined> => {
+    try {
+        const stats = await Filesystem.stat({
+            path,
+            directory: Directory.Documents
+        });
+        return {
+            size: stats.size
+        };
+    } catch {
+        return undefined;
+    }
+}

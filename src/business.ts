@@ -48,9 +48,7 @@ export const handleFileDownloadRequested = (
                 pendingDownload: true
             }
         };
-        const downloadCommand = DownloadFile(
-            nextCommandSeq, event.file.fullPath, event.file.name, event.file.objectKey);
-        return [newState, downloadCommand];
+        return [newState, DownloadFile(nextCommandSeq, event.fileNode)];
     }
     return JustState(state);
 };

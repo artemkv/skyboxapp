@@ -31,7 +31,7 @@ export interface FolderMetaLoadingFailedEvent {
 
 export interface FileDownloadRequestedEvent {
     type: EventType.FileDownloadRequested;
-    file: FileTreeNode_File;
+    fileNode: FileTreeNode_File;
 }
 
 export interface FileDownloadedEvent {
