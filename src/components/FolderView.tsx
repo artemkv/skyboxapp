@@ -52,13 +52,11 @@ const FolderView: React.FC<FolderViewProps> = memo((props) => {
             </div>;
         }
 
-        // TODO:
+        // TODO: should this be <Link to="..."> ?? what's the difference?
         return <a
             key={idx}
             href={"home/" + node.fullPath.join("/")}>
-            <div
-                className="folder-entry">
-
+            <div className="folder-entry">
                 <span className='folder-entry-icon'>
                     <IonIcon icon={folderOutline} />
                 </span>

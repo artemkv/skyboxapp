@@ -61,21 +61,21 @@ export type FileTreeNode =
 // Folder meta
 
 export interface FolderMetaItem {
-    path: string,
-    size: number,
-    hash: string
+    path: string;
+    size: number;
+    hash: string;
 }
 
 export interface FolderMeta {
-    items: FolderMetaItem[]
+    items: FolderMetaItem[];
 }
 
 // File meta
 
 export interface FileMeta {
-    fileNonce: string,
-    fileEncryptionKeyEncrypted: string,
-    fileEncryptionKeyNonce: string
+    fileNonce: string;
+    fileEncryptionKeyEncrypted: string;
+    fileEncryptionKeyNonce: string;
 }
 
 // In app state
