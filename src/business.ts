@@ -103,7 +103,6 @@ export const handleFolderMetaLoaded = (
     return JustState(state);
 };
 
-// TODO: depending on the error, we could retry
 export const handleFolderMetaLoadingFailed = (
     state: AppState,
     event: FolderMetaLoadingFailedEvent
@@ -117,6 +116,7 @@ export const handleFolderMetaLoadingFailed = (
                 err: event.err
             }
         };
+        // TODO: depending on the error, we could retry
         return JustState(newState);
     }
     return JustState(state);
