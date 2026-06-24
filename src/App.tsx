@@ -47,6 +47,7 @@ const App: React.FC<AppProps> = (props) => {
   const state = props.state;
   const dispatch = props.dispatch;
 
+  // TODO: move all route constants to a single place
   return (
     <IonApp>
       <IonReactRouter>

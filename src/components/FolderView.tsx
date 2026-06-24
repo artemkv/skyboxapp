@@ -6,6 +6,7 @@ import { memo } from "react";
 import { Dispatch } from "../hooks/useReducer";
 import { AppEvent, EventType } from "../events";
 import ProgressIndicator from "./ProgressIndicator";
+import { Link } from "react-router-dom";
 
 interface FolderViewProps {
     pendingDownload: boolean;
@@ -52,17 +53,16 @@ const FolderView: React.FC<FolderViewProps> = memo((props) => {
             </div>;
         }
 
-        // TODO: should this be <Link to="..."> ?? what's the difference?
-        return <a
-            key={idx}
-            href={"home/" + node.fullPath.join("/")}>
+        // TODO: move all route constants to a single place
+        return <Link to={"/home/" + node.fullPath.join("/")}
+            key={idx}>
             <div className="folder-entry">
                 <span className='folder-entry-icon'>
                     <IonIcon icon={folderOutline} />
                 </span>
                 {node.name}
             </div>
-        </a>;
+        </Link>;
     }
 
     return <div className="folder-view">
