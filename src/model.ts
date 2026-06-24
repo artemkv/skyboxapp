@@ -137,6 +137,10 @@ export type InAppStateCurrent =
     | InAppState_FolderMetaLoadingFailed
     | InAppState_Ready;
 
+// Routing
+
+export type NavigateForward = (path: string) => void;
+
 // App state
 
 export type AppState = {

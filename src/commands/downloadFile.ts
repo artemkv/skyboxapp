@@ -2,7 +2,7 @@ import { CommandType, DownloadFileCommand } from "../commands";
 import { decrypt, deriveMasterKey } from "../crypto";
 import { EventType } from "../events";
 import { getFileStats, PATH_SEPARATOR, saveFile } from "../fsconnect";
-import { AppConfig, FileMeta, FileTreeNode_File } from "../model";
+import { AppConfig, FileMeta, FileTreeNode_File, NavigateForward } from "../model";
 import { downloadObject, getFileMeta } from "../s3connect";
 
 const SKYBOX_LOCAL_FOLDER = "Skybox";
@@ -46,11 +46,17 @@ const makeLocalFilePath = (deviceId: string, fullPath: string[], fileName: strin
     return `${folder}${PATH_SEPARATOR}${fileName}`
 }
 
-export const DownloadFile = (seq: number, appConfig: AppConfig, fileNode: FileTreeNode_File): DownloadFileCommand => ({
+export const DownloadFile = (
+    seq: number,
+    appConfig: AppConfig,
+    fileNode: FileTreeNode_File,
+    navigate: NavigateForward
+): DownloadFileCommand => ({
     seq,
     type: CommandType.DownloadFile,
     appConfig,
     fileNode,
+    navigate,
     execute: async (dispatch) => {
         const fullPath = fileNode.fullPath;
         const fileName = fileNode.name;
@@ -59,19 +65,21 @@ export const DownloadFile = (seq: number, appConfig: AppConfig, fileNode: FileTr
 
         try {
             // get local file stats
-            const path = makeLocalFilePath(
+            const localPath = makeLocalFilePath(
                 appConfig.skyboxConfigs.deviceId, fullPath, fileName);
-            const stats = await getFileStats(path);
+            const stats = await getFileStats(localPath);
 
             // TODO: check etag
             // This will not match when testing on web, 
             // since in browser it would be stored base64-encoded
             if (stats && stats.size == size) {
                 // shortcut the download
-                console.log("Already downloaded");
+                // console.log("Already downloaded");
                 dispatch({
                     type: EventType.FileDownloaded,
-                    path,
+                    fileNode,
+                    localPath,
+                    navigate
                 });
                 return;
             }
@@ -119,12 +127,14 @@ export const DownloadFile = (seq: number, appConfig: AppConfig, fileNode: FileTr
             // console.log("Saving file");
             // TODO: works but 'npx tsc --noEmit' complains
             const blob = new Blob([decrypted]);
-            await saveFile(path, blob);
+            await saveFile(localPath, blob);
 
             // dispatch result
             dispatch({
                 type: EventType.FileDownloaded,
-                path,
+                fileNode,
+                localPath,
+                navigate
             });
         } catch (err) {
             dispatch({

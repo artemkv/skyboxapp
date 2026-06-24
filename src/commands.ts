@@ -1,7 +1,7 @@
 import { LoadAppConfig } from "./commands/loadAppConfig";
 import { AppEvent } from "./events";
 import { Command } from "./hooks/useReducer";
-import { AppConfig, FileTreeNode_File } from "./model";
+import { AppConfig, FileTreeNode_File, NavigateForward } from "./model";
 
 export enum CommandType {
     DoNothing,
@@ -13,7 +13,8 @@ export enum CommandType {
     LoadFolderMeta,
 
     DownloadFile,
-    ViewFile
+    OpenFile,
+    PreviewFile,
 }
 
 export interface DoNothingCommand extends Command<AppEvent> {
@@ -43,11 +44,18 @@ export interface DownloadFileCommand extends Command<AppEvent> {
     type: CommandType.DownloadFile;
     appConfig: AppConfig;
     fileNode: FileTreeNode_File;
+    navigate: NavigateForward;
 }
 
-export interface ViewFileCommand extends Command<AppEvent> {
-    type: CommandType.ViewFile;
-    path: string;
+export interface OpenFileCommand extends Command<AppEvent> {
+    type: CommandType.OpenFile;
+    localPath: string;
+}
+
+export interface PreviewFileCommand extends Command<AppEvent> {
+    type: CommandType.PreviewFile;
+    fileNode: FileTreeNode_File;
+    navigate: NavigateForward;
 }
 
 export type AppCommand =
@@ -57,7 +65,8 @@ export type AppCommand =
     | SaveAppConfigCommand
     | LoadFolderMetaCommand
     | DownloadFileCommand
-    | ViewFileCommand;
+    | OpenFileCommand
+    | PreviewFileCommand;
 
 export const DoNothing: DoNothingCommand = {
     seq: -1,

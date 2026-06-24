@@ -35,6 +35,7 @@ import HomePage from './pages/HomePage';
 import { AppState } from './model';
 import { Dispatch } from './hooks/useReducer';
 import { AppEvent } from './events';
+import PreviewPage from './pages/PreviewPage';
 
 setupIonicReact();
 
@@ -54,6 +55,9 @@ const App: React.FC<AppProps> = (props) => {
         <IonRouterOutlet>
           <Route path="/home/:path*">
             <HomePage state={state} dispatch={dispatch} />
+          </Route>
+          <Route path="/preview/:path*">
+            <PreviewPage state={state} dispatch={dispatch} />
           </Route>
           <Route exact path="/">
             <Redirect to="/home" />

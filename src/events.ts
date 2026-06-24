@@ -1,4 +1,4 @@
-import { AppConfig, FileTreeNode_File, FolderMeta } from "./model";
+import { AppConfig, FileTreeNode_File, FolderMeta, NavigateForward } from "./model";
 
 export enum EventType {
     // "Never" event is never triggered in the app
@@ -64,11 +64,14 @@ export interface FolderMetaLoadingFailedEvent {
 export interface FileDownloadRequestedEvent {
     type: EventType.FileDownloadRequested;
     fileNode: FileTreeNode_File;
+    navigate: NavigateForward;
 }
 
 export interface FileDownloadedEvent {
     type: EventType.FileDownloaded;
-    path: string;
+    fileNode: FileTreeNode_File;
+    localPath: string;
+    navigate: NavigateForward;
 }
 
 export interface FileDownloadFailedEvent {

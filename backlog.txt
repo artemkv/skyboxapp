@@ -19,6 +19,7 @@ Download
 UI
 
 - Add header
+- Pending download progress bar is broken
 
 Security
 

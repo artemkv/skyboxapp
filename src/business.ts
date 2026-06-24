@@ -2,8 +2,9 @@ import { AppCommand } from "./commands";
 import { DownloadFile } from "./commands/downloadFile";
 import { LoadAppConfig } from "./commands/loadAppConfig";
 import { LoadFolderMeta } from "./commands/loadFolderMeta";
+import { PreviewFile } from "./commands/previewFile";
 import { SaveAppConfig } from "./commands/saveAppConfig";
-import { ViewFile } from "./commands/viewFile";
+import { OpenFile } from "./commands/openFile";
 import { AppConfigLoadedEvent, AppConfigLoadingFailedEvent, AppConfigSavingFailedEvent, AppConfigSubmittedEvent, FileDownloadedEvent, FileDownloadFailedEvent, FileDownloadRequestedEvent, FolderMetaLoadedEvent, FolderMetaLoadingFailedEvent, OpeningFileFailedEvent } from "./events";
 import { AppState, FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, FolderMeta, InAppState, TreeNodeType } from "./model";
 import { JustState } from "./reducer";
@@ -137,7 +138,7 @@ export const handleFileDownloadRequested = (
             }
         };
         return [newState,
-            DownloadFile(nextCommandSeq, state.inAppState.appConfig, event.fileNode)];
+            DownloadFile(nextCommandSeq, state.inAppState.appConfig, event.fileNode, event.navigate)];
     }
     return JustState(state);
 };
@@ -156,7 +157,10 @@ export const handleFileDownloaded = (
                 pendingDownload: false
             }
         };
-        return [newState, ViewFile(nextCommandSeq, event.path)];
+        const command = isPreviewSupported(event.fileNode.name) ?
+            PreviewFile(nextCommandSeq, event.fileNode, event.navigate) :
+            OpenFile(nextCommandSeq, event.localPath);
+        return [newState, command];
     }
     return JustState(state);
 };
@@ -289,4 +293,11 @@ export const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Fo
     }
 
     return current;
+}
+
+const isPreviewSupported = (fileName: string) => {
+    if (fileName.endsWith(".txt")) {
+        return true;
+    }
+    return false;
 }

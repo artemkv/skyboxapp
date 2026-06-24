@@ -3,7 +3,9 @@ import { saveConfig } from "../configstorage";
 import { EventType } from "../events";
 import { AppConfig } from "../model";
 
-export const SaveAppConfig = (seq: number, appConfig: AppConfig): SaveAppConfigCommand => ({
+export const SaveAppConfig = (
+    seq: number, appConfig: AppConfig
+): SaveAppConfigCommand => ({
     seq,
     type: CommandType.SaveAppConfig,
     appConfig,

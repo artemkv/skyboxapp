@@ -27,7 +27,9 @@ const loadFromCache = async (folderMetaCacheFileName: string): Promise<FolderMet
     }
 }
 
-export const LoadFolderMeta = (seq: number, appConfig: AppConfig): LoadFolderMetaCommand => ({
+export const LoadFolderMeta = (
+    seq: number, appConfig: AppConfig
+): LoadFolderMetaCommand => ({
     seq,
     type: CommandType.LoadFolderMeta,
     appConfig,

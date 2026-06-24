@@ -1,8 +1,8 @@
-import { IonIcon } from "@ionic/react";
+import { IonIcon, useIonRouter } from "@ionic/react";
 import { documentOutline, folderOutline } from "ionicons/icons";
 import { FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, TreeNodeType } from "../model";
 import "./FolderView.css";
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { Dispatch } from "../hooks/useReducer";
 import { AppEvent, EventType } from "../events";
 import ProgressIndicator from "./ProgressIndicator";
@@ -18,6 +18,11 @@ const FolderView: React.FC<FolderViewProps> = memo((props) => {
     const pendingDownload = props.pendingDownload;
     const folder = props.folder;
     const dispatch = props.dispatch;
+
+    const router = useIonRouter();
+    const navigate = useCallback((path: string) => {
+        router.push(path);
+    }, [router]);
 
     // TODO: sort folders first
     // TODO: AI code
@@ -36,7 +41,8 @@ const FolderView: React.FC<FolderViewProps> = memo((props) => {
     const onFileClicked = (node: FileTreeNode_File) => {
         dispatch({
             type: EventType.FileDownloadRequested,
-            fileNode: node
+            fileNode: node,
+            navigate
         });
     }
 

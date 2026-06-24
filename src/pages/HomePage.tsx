@@ -41,6 +41,10 @@ const HomePage: React.FC<HomePageProps> = (props) => {
       return <div>ERROR: {state.inAppState.err}</div>
     }
 
+    // TODO: so this could actually be done in business
+    // but then,
+    // ether we give up on pages, but that means losing scroll position
+    // or we open new page with stale model, and for a while show irrelevant view
     const path = params.path;
     const folder = getFolder(path, state.inAppState.fileTree);
     // TODO: better component
