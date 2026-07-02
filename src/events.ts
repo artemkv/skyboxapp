@@ -6,8 +6,8 @@ export enum EventType {
     Never,
 
     NavigationRequested,
-    GoBackRequested,
     LocationUpdated,
+    BackButtonClicked,
 
     AppConfigLoaded,
     AppConfigLoadingFailed,
@@ -30,19 +30,23 @@ export interface NeverEvent {
     type: EventType.Never;
 }
 
+// History
+
 export interface NavigationRequestedEvent {
     type: EventType.NavigationRequested;
-    url: string;
-}
-
-export interface GoBackRequestedEvent {
-    type: EventType.GoBackRequested;
+    path: string;
 }
 
 export interface LocationUpdatedEvent {
     type: EventType.LocationUpdated;
-    url: string;
+    path: string;
 }
+
+export interface BackButtonClickedEvent {
+    type: EventType.BackButtonClicked;
+}
+
+// end of: History
 
 export interface AppConfigLoadedEvent {
     type: EventType.AppConfigLoaded;
@@ -102,8 +106,8 @@ export interface OpeningFileFailedEvent {
 export type AppEvent =
     | NeverEvent
     | NavigationRequestedEvent
-    | GoBackRequestedEvent
     | LocationUpdatedEvent
+    | BackButtonClickedEvent
     | AppConfigLoadedEvent
     | AppConfigLoadingFailedEvent
     | AppConfigSubmittedEvent

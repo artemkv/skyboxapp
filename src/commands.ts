@@ -29,12 +29,12 @@ export interface DoNothingCommand extends Command<AppEvent> {
 
 export interface HistoryPushStateCommand extends Command<AppEvent> {
     type: CommandType.HistoryPushState;
-    url: string;
+    path: string;
 }
 
 export interface HistoryReplaceStateCommand extends Command<AppEvent> {
     type: CommandType.HistoryReplaceState;
-    url: string;
+    path: string;
 }
 
 export interface HistoryGoForwardCommand extends Command<AppEvent> {

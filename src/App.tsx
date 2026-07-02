@@ -32,9 +32,9 @@ import './theme/variables.css';
 import HomePage from './pages/HomePage';
 import { AppState } from './model';
 import { Dispatch } from './hooks/useReducer';
-import { AppEvent, EventType } from './events';
-import { useEffect } from 'react';
-import type { BackButtonEvent, BackButtonEventDetail } from '@ionic/core';
+import { AppEvent } from './events';
+import useHandleBackButton from './hooks/useHandleBackButton';
+import useHandleLocationUpdate from './hooks/useHandleLocationUpdate';
 
 setupIonicReact();
 
@@ -47,30 +47,9 @@ const App: React.FC<AppProps> = (props) => {
   const state = props.state;
   const dispatch = props.dispatch;
 
-  useEffect(() => {
-    const handler = () => {
-      // TODO: pass all the parts of URL?
-      dispatch({ type: EventType.LocationUpdated, url: location.pathname });
-    };
+  useHandleBackButton(dispatch);
+  useHandleLocationUpdate(dispatch);
 
-    window.addEventListener('popstate', handler);
-    return () => window.removeEventListener('popstate', handler);
-  }, [dispatch]);
-
-  useEffect(() => {
-    const handler = (event: Event) => {
-      const backButtonEvent = event as CustomEvent<BackButtonEventDetail>;
-      // TODO: right priority
-      backButtonEvent.detail.register(0, () => {
-        dispatch({ type: EventType.GoBackRequested });
-      });
-    };
-
-    document.addEventListener('ionBackButton', handler);
-    return () => document.removeEventListener('ionBackButton', handler);
-  }, [dispatch]);
-
-  // TODO: move all route constants to a single place
   return (
     <IonApp>
       <HomePage state={state} dispatch={dispatch} />

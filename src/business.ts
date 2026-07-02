@@ -20,10 +20,10 @@ export const handleNavigationRequested = (
         ...state,
         commandSeq: nextCommandSeq,
     };
-    return [newState, HistoryPushState(nextCommandSeq, event.url)];
+    return [newState, HistoryPushState(nextCommandSeq, event.path)];
 };
 
-export const handleGoBackRequested = (
+export const handleBackButtonClicked = (
     state: AppState,
 ): [AppState, AppCommand] => {
     const nextCommandSeq = state.commandSeq + 1;
@@ -39,7 +39,7 @@ export const handleLocationUpdatedEvent = (
     event: LocationUpdatedEvent
 ): [AppState, AppCommand] => {
     if (state.inAppState.state == InAppState.Ready) {
-        const path = getPath(event.url);
+        const path = getPath(event.path);
         const newState: AppState = {
             ...state,
             inAppState: {
@@ -49,7 +49,6 @@ export const handleLocationUpdatedEvent = (
         };
         return JustState(newState);
     }
-
     return JustState(state);
 };
 
@@ -341,11 +340,11 @@ const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Folder | 
 }
 
 // TODO: this is actual routing
-const getPath = (url: string): string => {
+const getPath = (path: string): string => {
     const pattern = new URLPattern({
         pathname: "/home/:path*",
     });
-    const match = pattern.exec({ pathname: url });
+    const match = pattern.exec({ pathname: path });
     if (match) {
         return match.pathname.groups.path ?? "";
     }

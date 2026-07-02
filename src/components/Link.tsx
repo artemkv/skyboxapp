@@ -19,7 +19,7 @@ const Link: React.FC<LinkProps> = (props) => {
         if (!e.defaultPrevented) {
             dispatch({
                 type: EventType.NavigationRequested,
-                url: to
+                path: to
             });
         }
     };

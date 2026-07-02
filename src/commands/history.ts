@@ -1,26 +1,25 @@
 import { CommandType, HistoryGoBackCommand, HistoryGoForwardCommand, HistoryPushStateCommand, HistoryReplaceStateCommand } from "../commands";
 import { EventType } from "../events";
 
-export const HistoryPushState = (seq: number, url: string): HistoryPushStateCommand => ({
+export const HistoryPushState = (seq: number, path: string): HistoryPushStateCommand => ({
     seq,
-    url,
+    path,
     type: CommandType.HistoryPushState,
     execute: async (dispatch) => {
-        window.history.pushState(null, "", url);
+        window.history.pushState(null, "", path);
         dispatch({
             type: EventType.LocationUpdated,
-            // TODO: Can I get Location from here, and work on that level?
-            url,
+            path,
         });
     },
 });
 
-export const HistoryReplaceState = (seq: number, url: string): HistoryReplaceStateCommand => ({
+export const HistoryReplaceState = (seq: number, path: string): HistoryReplaceStateCommand => ({
     seq,
-    url,
+    path,
     type: CommandType.HistoryReplaceState,
     execute: async () => {
-        window.history.replaceState(null, "", url);
+        window.history.replaceState(null, "", path);
         // TODO: dispatch LocationUpdated?
     },
 });
