@@ -6,6 +6,7 @@ export enum EventType {
     Never,
 
     NavigationRequested,
+    GoBackRequested,
     LocationUpdated,
 
     AppConfigLoaded,
@@ -32,6 +33,10 @@ export interface NeverEvent {
 export interface NavigationRequestedEvent {
     type: EventType.NavigationRequested;
     url: string;
+}
+
+export interface GoBackRequestedEvent {
+    type: EventType.GoBackRequested;
 }
 
 export interface LocationUpdatedEvent {
@@ -97,6 +102,7 @@ export interface OpeningFileFailedEvent {
 export type AppEvent =
     | NeverEvent
     | NavigationRequestedEvent
+    | GoBackRequestedEvent
     | LocationUpdatedEvent
     | AppConfigLoadedEvent
     | AppConfigLoadingFailedEvent

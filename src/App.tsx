@@ -34,6 +34,7 @@ import { AppState } from './model';
 import { Dispatch } from './hooks/useReducer';
 import { AppEvent, EventType } from './events';
 import { useEffect } from 'react';
+import type { BackButtonEvent, BackButtonEventDetail } from '@ionic/core';
 
 setupIonicReact();
 
@@ -54,6 +55,19 @@ const App: React.FC<AppProps> = (props) => {
 
     window.addEventListener('popstate', handler);
     return () => window.removeEventListener('popstate', handler);
+  }, [dispatch]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const backButtonEvent = event as CustomEvent<BackButtonEventDetail>;
+      // TODO: right priority
+      backButtonEvent.detail.register(0, () => {
+        dispatch({ type: EventType.GoBackRequested });
+      });
+    };
+
+    document.addEventListener('ionBackButton', handler);
+    return () => document.removeEventListener('ionBackButton', handler);
   }, [dispatch]);
 
   // TODO: move all route constants to a single place

@@ -1,4 +1,4 @@
-import { handleAppConfigLoaded, handleAppConfigLoadingFailed, handleAppConfigSaved, handleAppConfigSavingFailed, handleAppConfigSubmitted, handleFileDownloaded, handleFileDownloadFailed, handleFileDownloadRequested, handleFolderMetaLoaded, handleFolderMetaLoadingFailed, handleLocationUpdatedEvent, handleNavigationRequested, handleOpeningFileFailed } from "./business";
+import { handleAppConfigLoaded, handleAppConfigLoadingFailed, handleAppConfigSaved, handleAppConfigSavingFailed, handleAppConfigSubmitted, handleFileDownloaded, handleFileDownloadFailed, handleFileDownloadRequested, handleFolderMetaLoaded, handleFolderMetaLoadingFailed, handleGoBackRequested, handleLocationUpdatedEvent, handleNavigationRequested, handleOpeningFileFailed } from "./business";
 import { AppCommand, DoNothing } from "./commands";
 import { AppEvent, EventType } from "./events";
 import { AppState } from "./model";
@@ -19,6 +19,9 @@ export const Reducer = (
 
     if (event.type == EventType.NavigationRequested) {
         return handleNavigationRequested(state, event);
+    }
+    if (event.type == EventType.GoBackRequested) {
+        return handleGoBackRequested(state);
     }
     if (event.type == EventType.LocationUpdated) {
         return handleLocationUpdatedEvent(state, event);

@@ -1,6 +1,6 @@
 import { AppCommand } from "./commands";
 import { DownloadFile } from "./commands/downloadFile";
-import { HistoryPushState } from "./commands/history";
+import { HistoryGoBack, HistoryPushState } from "./commands/history";
 import { LoadAppConfig } from "./commands/loadAppConfig";
 import { LoadFolderMeta } from "./commands/loadFolderMeta";
 import { SaveAppConfig } from "./commands/saveAppConfig";
@@ -21,6 +21,17 @@ export const handleNavigationRequested = (
         commandSeq: nextCommandSeq,
     };
     return [newState, HistoryPushState(nextCommandSeq, event.url)];
+};
+
+export const handleGoBackRequested = (
+    state: AppState,
+): [AppState, AppCommand] => {
+    const nextCommandSeq = state.commandSeq + 1;
+    const newState: AppState = {
+        ...state,
+        commandSeq: nextCommandSeq,
+    };
+    return [newState, HistoryGoBack(nextCommandSeq)];
 };
 
 export const handleLocationUpdatedEvent = (
