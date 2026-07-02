@@ -1,6 +1,4 @@
-import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
-import { IonReactRouter } from '@ionic/react-router';
+import { IonApp, setupIonicReact } from '@ionic/react';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -34,7 +32,8 @@ import './theme/variables.css';
 import HomePage from './pages/HomePage';
 import { AppState } from './model';
 import { Dispatch } from './hooks/useReducer';
-import { AppEvent } from './events';
+import { AppEvent, EventType } from './events';
+import { useEffect } from 'react';
 
 setupIonicReact();
 
@@ -47,19 +46,20 @@ const App: React.FC<AppProps> = (props) => {
   const state = props.state;
   const dispatch = props.dispatch;
 
+  useEffect(() => {
+    const handler = () => {
+      // TODO: pass all the parts of URL?
+      dispatch({ type: EventType.LocationUpdated, url: location.pathname });
+    };
+
+    window.addEventListener('popstate', handler);
+    return () => window.removeEventListener('popstate', handler);
+  }, [dispatch]);
+
   // TODO: move all route constants to a single place
   return (
     <IonApp>
-      <IonReactRouter>
-        <IonRouterOutlet>
-          <Route path="/home/:path*">
-            <HomePage state={state} dispatch={dispatch} />
-          </Route>
-          <Route exact path="/">
-            <Redirect to="/home" />
-          </Route>
-        </IonRouterOutlet>
-      </IonReactRouter>
+      <HomePage state={state} dispatch={dispatch} />
     </IonApp>
   );
 }

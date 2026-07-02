@@ -7,6 +7,11 @@ export enum CommandType {
     DoNothing,
     DoMany,
 
+    HistoryPushState,
+    HistoryReplaceState,
+    HistoryGoForward,
+    HistoryGoBack,
+
     LoadAppConfig,
     SaveAppConfig,
 
@@ -19,6 +24,28 @@ export enum CommandType {
 export interface DoNothingCommand extends Command<AppEvent> {
     type: CommandType.DoNothing;
 }
+
+// History
+
+export interface HistoryPushStateCommand extends Command<AppEvent> {
+    type: CommandType.HistoryPushState;
+    url: string;
+}
+
+export interface HistoryReplaceStateCommand extends Command<AppEvent> {
+    type: CommandType.HistoryReplaceState;
+    url: string;
+}
+
+export interface HistoryGoForwardCommand extends Command<AppEvent> {
+    type: CommandType.HistoryGoForward;
+}
+
+export interface HistoryGoBackCommand extends Command<AppEvent> {
+    type: CommandType.HistoryGoBack;
+}
+
+// end of: History
 
 export interface DoManyCommand extends Command<AppEvent> {
     type: CommandType.DoMany;
@@ -53,6 +80,10 @@ export interface ViewFileCommand extends Command<AppEvent> {
 export type AppCommand =
     | DoNothingCommand
     | DoManyCommand
+    | HistoryPushStateCommand
+    | HistoryReplaceStateCommand
+    | HistoryGoForwardCommand
+    | HistoryGoBackCommand
     | LoadAppConfigCommand
     | SaveAppConfigCommand
     | LoadFolderMetaCommand

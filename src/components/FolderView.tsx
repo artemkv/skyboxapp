@@ -6,7 +6,7 @@ import { memo } from "react";
 import { Dispatch } from "../hooks/useReducer";
 import { AppEvent, EventType } from "../events";
 import ProgressIndicator from "./ProgressIndicator";
-import { Link } from "react-router-dom";
+import Link from "./Link";
 
 interface FolderViewProps {
     pendingDownload: boolean;
@@ -54,8 +54,10 @@ const FolderView: React.FC<FolderViewProps> = memo((props) => {
         }
 
         // TODO: move all route constants to a single place
-        return <Link to={"/home/" + node.fullPath.join("/")}
-            key={idx}>
+        return <Link
+            key={idx}
+            to={"/home/" + node.fullPath.join("/")}
+            dispatch={dispatch}>
             <div className="folder-entry">
                 <span className='folder-entry-icon'>
                     <IonIcon icon={folderOutline} />

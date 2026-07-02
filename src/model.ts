@@ -124,6 +124,9 @@ export interface InAppState_Ready {
     state: InAppState.Ready;
     appConfig: AppConfig;
     fileTree: FileTreeNode;
+    // TODO: I think instead of current folder I should store actual location on the model
+    // TODO: and derive folder
+    currentFolder?: FileTreeNode_Folder;
     pendingDownload: boolean;
     errors: string[];
 }

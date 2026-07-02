@@ -1,12 +1,48 @@
 import { AppCommand } from "./commands";
 import { DownloadFile } from "./commands/downloadFile";
+import { HistoryPushState } from "./commands/history";
 import { LoadAppConfig } from "./commands/loadAppConfig";
 import { LoadFolderMeta } from "./commands/loadFolderMeta";
 import { SaveAppConfig } from "./commands/saveAppConfig";
 import { ViewFile } from "./commands/viewFile";
-import { AppConfigLoadedEvent, AppConfigLoadingFailedEvent, AppConfigSavingFailedEvent, AppConfigSubmittedEvent, FileDownloadedEvent, FileDownloadFailedEvent, FileDownloadRequestedEvent, FolderMetaLoadedEvent, FolderMetaLoadingFailedEvent, OpeningFileFailedEvent } from "./events";
+import { AppConfigLoadedEvent, AppConfigLoadingFailedEvent, AppConfigSavingFailedEvent, AppConfigSubmittedEvent, FileDownloadedEvent, FileDownloadFailedEvent, FileDownloadRequestedEvent, FolderMetaLoadedEvent, FolderMetaLoadingFailedEvent, LocationUpdatedEvent, NavigationRequestedEvent, OpeningFileFailedEvent } from "./events";
 import { AppState, FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, FolderMeta, InAppState, TreeNodeType } from "./model";
 import { JustState } from "./reducer";
+
+// Navigation
+
+export const handleNavigationRequested = (
+    state: AppState,
+    event: NavigationRequestedEvent
+): [AppState, AppCommand] => {
+    const nextCommandSeq = state.commandSeq + 1;
+    const newState: AppState = {
+        ...state,
+        commandSeq: nextCommandSeq,
+    };
+    return [newState, HistoryPushState(nextCommandSeq, event.url)];
+};
+
+export const handleLocationUpdatedEvent = (
+    state: AppState,
+    event: LocationUpdatedEvent
+): [AppState, AppCommand] => {
+    if (state.inAppState.state == InAppState.Ready) {
+        const path = getPath(event.url);
+        const newState: AppState = {
+            ...state,
+            inAppState: {
+                ...state.inAppState,
+                currentFolder: getFolder(path, state.inAppState.fileTree)
+            }
+        };
+        return JustState(newState);
+    }
+
+    return JustState(state);
+};
+
+// end: Navigation
 
 export const handleAppConfigLoaded = (
     state: AppState,
@@ -88,12 +124,14 @@ export const handleFolderMetaLoaded = (
     event: FolderMetaLoadedEvent
 ): [AppState, AppCommand] => {
     if (state.inAppState.state == InAppState.FolderMetaLoading) {
+        const fileTree = toFileTree(event.meta);
         const newState: AppState = {
             ...state,
             inAppState: {
                 state: InAppState.Ready,
                 appConfig: state.inAppState.appConfig,
-                fileTree: toFileTree(event.meta),
+                fileTree: fileTree,
+                currentFolder: fileTree,
                 pendingDownload: false,
                 errors: []
             }
@@ -201,7 +239,7 @@ export const handleOpeningFileFailed = (
 // TODO: This is written by AI but seem to work fine
 // TODO: brush it up and --unit-test--
 // TODO: "/"
-export const toFileTree = (folderMeta: FolderMeta): FileTreeNode => {
+export const toFileTree = (folderMeta: FolderMeta): FileTreeNode_Folder => {
     const root: FileTreeNode_Folder = {
         type: TreeNodeType.Folder,
         name: "",
@@ -263,7 +301,7 @@ export const toFileTree = (folderMeta: FolderMeta): FileTreeNode => {
 // TODO: written by AI
 // TODO: brush it up and unit-test
 // TODO: fails on spaces, so need to make sure to decode the url
-export const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Folder | null => {
+const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Folder | undefined => {
     if (!path) {
         return fileTree as FileTreeNode_Folder;
     }
@@ -282,11 +320,23 @@ export const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Fo
         );
 
         if (!next) {
-            return null;
+            return undefined;
         }
 
         current = next;
     }
 
     return current;
+}
+
+// TODO: this is actual routing
+const getPath = (url: string): string => {
+    const pattern = new URLPattern({
+        pathname: "/home/:path*",
+    });
+    const match = pattern.exec({ pathname: url });
+    if (match) {
+        return match.pathname.groups.path ?? "";
+    }
+    return "";
 }

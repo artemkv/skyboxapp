@@ -5,6 +5,9 @@ export enum EventType {
     // this is just to make TS happy
     Never,
 
+    NavigationRequested,
+    LocationUpdated,
+
     AppConfigLoaded,
     AppConfigLoadingFailed,
 
@@ -24,6 +27,16 @@ export enum EventType {
 
 export interface NeverEvent {
     type: EventType.Never;
+}
+
+export interface NavigationRequestedEvent {
+    type: EventType.NavigationRequested;
+    url: string;
+}
+
+export interface LocationUpdatedEvent {
+    type: EventType.LocationUpdated;
+    url: string;
 }
 
 export interface AppConfigLoadedEvent {
@@ -83,6 +96,8 @@ export interface OpeningFileFailedEvent {
 
 export type AppEvent =
     | NeverEvent
+    | NavigationRequestedEvent
+    | LocationUpdatedEvent
     | AppConfigLoadedEvent
     | AppConfigLoadingFailedEvent
     | AppConfigSubmittedEvent
