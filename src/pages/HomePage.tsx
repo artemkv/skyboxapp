@@ -1,48 +1,51 @@
 import './HomePage.css';
-import { AppState, EmptyAppConfig, InAppState } from '../model';
+import { EmptyAppConfig, InAppState, InAppStateCurrent } from '../model';
 import { Dispatch } from '../hooks/useReducer';
 import { AppEvent } from '../events';
 import ProgressIndicator from '../components/ProgressIndicator';
 import FolderView from '../components/FolderView';
 import ConfigView from '../components/ConfigView';
+import { getFolder } from '../business';
 
 interface HomePageProps {
-  state: AppState;
+  inAppState: InAppStateCurrent;
+  folderPath: string;
   dispatch: Dispatch<AppEvent>;
 }
 
 // TODO: show (state.folderMeta.errors) somehow
 const HomePage: React.FC<HomePageProps> = (props) => {
-  const state = props.state;
+  const inAppState = props.inAppState;
+  const folderPath = props.folderPath;
   const dispatch = props.dispatch;
 
-  if (state.inAppState.state == InAppState.AppConfigLoading ||
-    state.inAppState.state == InAppState.FolderMetaLoading ||
-    state.inAppState.state == InAppState.AppConfigSaving
+  if (inAppState.state == InAppState.AppConfigLoading ||
+    inAppState.state == InAppState.FolderMetaLoading ||
+    inAppState.state == InAppState.AppConfigSaving
   ) {
     return <ProgressIndicator />
   }
 
-  if (state.inAppState.state == InAppState.AppConfigLoadingFailed ||
-    state.inAppState.state == InAppState.AppConfigSavingFailed
+  if (inAppState.state == InAppState.AppConfigLoadingFailed ||
+    inAppState.state == InAppState.AppConfigSavingFailed
   ) {
     return <ConfigView appConfig={EmptyAppConfig} dispatch={dispatch} />
   }
 
   // TODO: better error view
-  if (state.inAppState.state == InAppState.FolderMetaLoadingFailed
+  if (inAppState.state == InAppState.FolderMetaLoadingFailed
   ) {
-    return <div>ERROR: {state.inAppState.err}</div>
+    return <div>ERROR: {inAppState.err}</div>
   }
 
-  // TODO: test
-  if (!state.inAppState.currentFolder) {
+  const folder = getFolder(folderPath, inAppState.fileTree);
+  if (!folder) {
     return <div>404 Not found</div>
   }
 
   return <FolderView
-    pendingDownload={state.inAppState.pendingDownload}
-    folder={state.inAppState.currentFolder}
+    pendingDownload={inAppState.pendingDownload}
+    folder={folder}
     dispatch={dispatch} />;
 };
 

@@ -78,6 +78,28 @@ export interface FileMeta {
     fileEncryptionKeyNonce: string;
 }
 
+// Route
+
+export enum RouteType {
+    Default,
+    FolderView,
+}
+
+export interface RouteDefault {
+    type: RouteType.Default;
+}
+
+export interface RouteFolderView {
+    type: RouteType.FolderView;
+    folderPath: string;
+}
+
+export type Route = RouteDefault | RouteFolderView;
+
+export const DefaultRoute: RouteDefault = {
+    type: RouteType.Default
+}
+
 // In app state
 
 export enum InAppState {
@@ -124,9 +146,6 @@ export interface InAppState_Ready {
     state: InAppState.Ready;
     appConfig: AppConfig;
     fileTree: FileTreeNode;
-    // TODO: I think instead of current folder I should store actual location on the model
-    // TODO: and derive folder
-    currentFolder?: FileTreeNode_Folder;
     pendingDownload: boolean;
     errors: string[];
 }
@@ -145,6 +164,7 @@ export type InAppStateCurrent =
 export type AppState = {
     // Last command issued
     commandSeq: number;
+    route: Route;
     inAppState: InAppStateCurrent;
 };
 
@@ -152,6 +172,7 @@ export type AppState = {
 
 export const IntialState: AppState = {
     commandSeq: 0,
+    route: DefaultRoute,
     inAppState: {
         state: InAppState.AppConfigLoading
     },

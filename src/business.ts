@@ -1,13 +1,14 @@
 import { AppCommand } from "./commands";
 import { DownloadFile } from "./commands/downloadFile";
-import { HistoryGoBack, HistoryPushState } from "./commands/history";
+import { HistoryGoBack, HistoryPushState, HistoryReplaceState } from "./commands/history";
 import { LoadAppConfig } from "./commands/loadAppConfig";
 import { LoadFolderMeta } from "./commands/loadFolderMeta";
 import { SaveAppConfig } from "./commands/saveAppConfig";
 import { ViewFile } from "./commands/viewFile";
 import { AppConfigLoadedEvent, AppConfigLoadingFailedEvent, AppConfigSavingFailedEvent, AppConfigSubmittedEvent, FileDownloadedEvent, FileDownloadFailedEvent, FileDownloadRequestedEvent, FolderMetaLoadedEvent, FolderMetaLoadingFailedEvent, LocationUpdatedEvent, NavigationRequestedEvent, OpeningFileFailedEvent } from "./events";
-import { AppState, FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, FolderMeta, InAppState, TreeNodeType } from "./model";
+import { AppState, FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, FolderMeta, InAppState, RouteType, TreeNodeType } from "./model";
 import { JustState } from "./reducer";
+import { getRoute, HOME_ROUTE } from "./routing";
 
 // Navigation
 
@@ -38,18 +39,22 @@ export const handleLocationUpdatedEvent = (
     state: AppState,
     event: LocationUpdatedEvent
 ): [AppState, AppCommand] => {
-    if (state.inAppState.state == InAppState.Ready) {
-        const path = getPath(event.path);
+    const route = getRoute(event.path);
+    // redirect
+    if (route.type == RouteType.Default) {
+        const nextCommandSeq = state.commandSeq + 1;
         const newState: AppState = {
             ...state,
-            inAppState: {
-                ...state.inAppState,
-                currentFolder: getFolder(path, state.inAppState.fileTree)
-            }
+            commandSeq: nextCommandSeq,
+            route,
         };
-        return JustState(newState);
+        return [newState, HistoryReplaceState(nextCommandSeq, HOME_ROUTE)];
     }
-    return JustState(state);
+    const newState: AppState = {
+        ...state,
+        route,
+    };
+    return JustState(newState);
 };
 
 // end: Navigation
@@ -141,7 +146,6 @@ export const handleFolderMetaLoaded = (
                 state: InAppState.Ready,
                 appConfig: state.inAppState.appConfig,
                 fileTree: fileTree,
-                currentFolder: fileTree,
                 pendingDownload: false,
                 errors: []
             }
@@ -311,7 +315,7 @@ export const toFileTree = (folderMeta: FolderMeta): FileTreeNode_Folder => {
 // TODO: written by AI
 // TODO: brush it up and unit-test
 // TODO: fails on spaces, so need to make sure to decode the url
-const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Folder | undefined => {
+export const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Folder | undefined => {
     if (!path) {
         return fileTree as FileTreeNode_Folder;
     }
@@ -337,16 +341,4 @@ const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Folder | 
     }
 
     return current;
-}
-
-// TODO: this is actual routing
-const getPath = (path: string): string => {
-    const pattern = new URLPattern({
-        pathname: "/home/:path*",
-    });
-    const match = pattern.exec({ pathname: path });
-    if (match) {
-        return match.pathname.groups.path ?? "";
-    }
-    return "";
 }

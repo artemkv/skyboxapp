@@ -33,14 +33,17 @@ window.addEventListener("popstate", (event) => {
 */
 
 const useHandleLocationUpdate = (dispatch: Dispatch<AppEvent>) => {
-    useEffect(() => {
-        const handler = () => {
-            dispatch({ type: EventType.LocationUpdated, path: location.pathname });
-        };
+  useEffect(() => {
+    const handler = () => {
+      dispatch({ type: EventType.LocationUpdated, path: location.pathname });
+    };
 
-        window.addEventListener('popstate', handler);
-        return () => window.removeEventListener('popstate', handler);
-    }, [dispatch]);
+    window.addEventListener('popstate', handler);
+
+    dispatch({ type: EventType.LocationUpdated, path: location.pathname });
+
+    return () => window.removeEventListener('popstate', handler);
+  }, [dispatch]);
 }
 
 export default useHandleLocationUpdate;

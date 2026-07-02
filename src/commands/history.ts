@@ -18,9 +18,12 @@ export const HistoryReplaceState = (seq: number, path: string): HistoryReplaceSt
     seq,
     path,
     type: CommandType.HistoryReplaceState,
-    execute: async () => {
+    execute: async (dispatch) => {
         window.history.replaceState(null, "", path);
-        // TODO: dispatch LocationUpdated?
+        dispatch({
+            type: EventType.LocationUpdated,
+            path,
+        });
     },
 });
 
@@ -37,5 +40,7 @@ export const HistoryGoBack = (seq: number): HistoryGoBackCommand => ({
     type: CommandType.HistoryGoBack,
     execute: async () => {
         window.history.back();
+        // TODO:
+        // App.exitApp();
     },
 });

@@ -30,7 +30,7 @@ import '@ionic/react/css/palettes/dark.system.css';
 /* Theme variables */
 import './theme/variables.css';
 import HomePage from './pages/HomePage';
-import { AppState } from './model';
+import { AppState, RouteType } from './model';
 import { Dispatch } from './hooks/useReducer';
 import { AppEvent } from './events';
 import useHandleBackButton from './hooks/useHandleBackButton';
@@ -52,7 +52,8 @@ const App: React.FC<AppProps> = (props) => {
 
   return (
     <IonApp>
-      <HomePage state={state} dispatch={dispatch} />
+      {state.route.type == RouteType.FolderView ?
+        <HomePage inAppState={state.inAppState} folderPath={state.route.folderPath} dispatch={dispatch} /> : null}
     </IonApp>
   );
 }
