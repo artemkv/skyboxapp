@@ -3,10 +3,11 @@ import { DownloadFile } from "./commands/downloadFile";
 import { HistoryGoBack, HistoryPushState, HistoryReplaceState } from "./commands/history";
 import { LoadAppConfig } from "./commands/loadAppConfig";
 import { LoadFolderMeta } from "./commands/loadFolderMeta";
+import { OpenFile } from "./commands/openFile";
+import { ReadeFileContent } from "./commands/readFileContent";
 import { SaveAppConfig } from "./commands/saveAppConfig";
-import { ViewFile } from "./commands/viewFile";
-import { AppConfigLoadedEvent, AppConfigLoadingFailedEvent, AppConfigSavingFailedEvent, AppConfigSubmittedEvent, FileDownloadedEvent, FileDownloadFailedEvent, FileDownloadRequestedEvent, FolderMetaLoadedEvent, FolderMetaLoadingFailedEvent, LocationUpdatedEvent, NavigationRequestedEvent, OpeningFileFailedEvent } from "./events";
-import { AppState, FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, FolderMeta, InAppState, RouteType, TreeNodeType } from "./model";
+import { AppConfigLoadedEvent, AppConfigLoadingFailedEvent, AppConfigSavingFailedEvent, AppConfigSubmittedEvent, FileContentLoadedEvent, FileDownloadedEvent, FileDownloadFailedEvent, FileDownloadRequestedEvent, FolderMetaLoadedEvent, FolderMetaLoadingFailedEvent, LocationUpdatedEvent, NavigationRequestedEvent, OpeningFileFailedEvent } from "./events";
+import { AppState, FileTreeNode, FileTreeNode_File, FileTreeNode_Folder, FolderMeta, InAppState, RouteType, TreeNodeType, ViewType } from "./model";
 import { JustState } from "./reducer";
 import { getRoute, HOME_ROUTE } from "./routing";
 
@@ -27,6 +28,25 @@ export const handleNavigationRequested = (
 export const handleBackButtonClicked = (
     state: AppState,
 ): [AppState, AppCommand] => {
+    // close preview
+    if (state.inAppState.state == InAppState.Ready) {
+        if (state.inAppState.view.type == ViewType.FilePreview) {
+            const newState: AppState = {
+                ...state,
+                inAppState: {
+                    ...state.inAppState,
+                    view: {
+                        type: ViewType.FolderView,
+                        folder: state.inAppState.view.folder,
+                        pendingProgress: false
+                    }
+                }
+            };
+            return JustState(newState);
+        }
+    }
+
+    // nav back
     const nextCommandSeq = state.commandSeq + 1;
     const newState: AppState = {
         ...state,
@@ -40,6 +60,7 @@ export const handleLocationUpdatedEvent = (
     event: LocationUpdatedEvent
 ): [AppState, AppCommand] => {
     const route = getRoute(event.path);
+
     // redirect
     if (route.type == RouteType.Default) {
         const nextCommandSeq = state.commandSeq + 1;
@@ -50,6 +71,24 @@ export const handleLocationUpdatedEvent = (
         };
         return [newState, HistoryReplaceState(nextCommandSeq, HOME_ROUTE)];
     }
+    // update folder
+    if (state.inAppState.state == InAppState.Ready) {
+        const currentFolder = getFolder(route.folderPath, state.inAppState.fileTree);
+        const newState: AppState = {
+            ...state,
+            route,
+            inAppState: {
+                ...state.inAppState,
+                view: {
+                    type: ViewType.FolderView,
+                    folder: currentFolder,
+                    pendingProgress: false,
+                }
+            }
+        };
+        return JustState(newState);
+    }
+    // not yet ready, just update route
     const newState: AppState = {
         ...state,
         route,
@@ -140,13 +179,20 @@ export const handleFolderMetaLoaded = (
 ): [AppState, AppCommand] => {
     if (state.inAppState.state == InAppState.FolderMetaLoading) {
         const fileTree = toFileTree(event.meta);
+        const currentFolder = getFolder(
+            state.route.type == RouteType.FolderView ? state.route.folderPath : "",
+            fileTree);
         const newState: AppState = {
             ...state,
             inAppState: {
                 state: InAppState.Ready,
                 appConfig: state.inAppState.appConfig,
                 fileTree: fileTree,
-                pendingDownload: false,
+                view: {
+                    type: ViewType.FolderView,
+                    folder: currentFolder,
+                    pendingProgress: false,
+                },
                 errors: []
             }
         };
@@ -185,7 +231,11 @@ export const handleFileDownloadRequested = (
             commandSeq: nextCommandSeq,
             inAppState: {
                 ...state.inAppState,
-                pendingDownload: true
+                view: {
+                    ...state.inAppState.view,
+                    type: ViewType.FolderView,
+                    pendingProgress: true
+                }
             }
         };
         return [newState,
@@ -199,16 +249,33 @@ export const handleFileDownloaded = (
     event: FileDownloadedEvent
 ): [AppState, AppCommand] => {
     if (state.inAppState.state == InAppState.Ready) {
+        const previewSupported = isPreviewSupported(event.fileNode.name);
+
         const nextCommandSeq = state.commandSeq + 1;
         const newState: AppState = {
             ...state,
             commandSeq: nextCommandSeq,
             inAppState: {
                 ...state.inAppState,
-                pendingDownload: false
+                view: previewSupported ?
+                    {
+                        ...state.inAppState.view,
+                        type: ViewType.FilePreview,
+                        content: undefined
+                    } :
+                    {
+                        ...state.inAppState.view,
+                        type: ViewType.FolderView,
+                        pendingProgress: false
+                    }
             }
         };
-        return [newState, ViewFile(nextCommandSeq, event.path)];
+        return [
+            newState,
+            previewSupported ?
+                ReadeFileContent(nextCommandSeq, event.localPath) :
+                OpenFile(nextCommandSeq, event.localPath)
+        ];
     }
     return JustState(state);
 };
@@ -222,7 +289,11 @@ export const handleFileDownloadFailed = (
             ...state,
             inAppState: {
                 ...state.inAppState,
-                pendingDownload: false,
+                view: {
+                    ...state.inAppState.view,
+                    type: ViewType.FolderView,
+                    pendingProgress: false,
+                },
                 errors: [event.err, ...state.inAppState.errors]
             }
         };
@@ -247,6 +318,33 @@ export const handleOpeningFileFailed = (
     }
     return JustState(state);
 };
+
+export const handleFileContentLoaded = (
+    state: AppState,
+    event: FileContentLoadedEvent
+): [AppState, AppCommand] => {
+    if (state.inAppState.state == InAppState.Ready) {
+        // TODO: make sure the file is actually the one we are waiting for
+        if (state.inAppState.view.type == ViewType.FilePreview) {
+            const newState: AppState = {
+                ...state,
+                inAppState: {
+                    ...state.inAppState,
+                    view:
+                    {
+                        type: ViewType.FilePreview,
+                        folder: state.inAppState.view.folder,
+                        content: event.content
+                    }
+                }
+            };
+            return JustState(newState);
+        }
+    }
+    return JustState(state);
+};
+
+// TODO: handle FileContentLoadingFailed
 
 // Helpers
 
@@ -315,7 +413,7 @@ export const toFileTree = (folderMeta: FolderMeta): FileTreeNode_Folder => {
 // TODO: written by AI
 // TODO: brush it up and unit-test
 // TODO: fails on spaces, so need to make sure to decode the url
-export const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Folder | undefined => {
+const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Folder | undefined => {
     if (!path) {
         return fileTree as FileTreeNode_Folder;
     }
@@ -341,4 +439,11 @@ export const getFolder = (path: string, fileTree: FileTreeNode): FileTreeNode_Fo
     }
 
     return current;
+}
+
+const isPreviewSupported = (fileName: string) => {
+    if (fileName.endsWith(".txt")) {
+        return true;
+    }
+    return false;
 }

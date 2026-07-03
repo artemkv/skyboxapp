@@ -100,6 +100,27 @@ export const DefaultRoute: RouteDefault = {
     type: RouteType.Default
 }
 
+// View
+
+export enum ViewType {
+    FolderView,
+    FilePreview,
+}
+
+export interface ViewFolderView {
+    type: ViewType.FolderView;
+    folder?: FileTreeNode_Folder;
+    pendingProgress: boolean;
+}
+
+export interface ViewFilePreview {
+    type: ViewType.FilePreview;
+    folder?: FileTreeNode_Folder;
+    content?: string;
+}
+
+export type CurrentView = ViewFolderView | ViewFilePreview;
+
 // In app state
 
 export enum InAppState {
@@ -146,7 +167,7 @@ export interface InAppState_Ready {
     state: InAppState.Ready;
     appConfig: AppConfig;
     fileTree: FileTreeNode;
-    pendingDownload: boolean;
+    view: CurrentView;
     errors: string[];
 }
 

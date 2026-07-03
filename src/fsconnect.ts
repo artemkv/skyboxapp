@@ -45,6 +45,18 @@ export const saveFile = async (path: string, blob: Blob): Promise<void> => {
     });
 };
 
+export const loadFileContentAsText = async (path: string): Promise<string> => {
+    const data = await Filesystem.readFile({
+        path,
+        directory: Directory.Documents,
+    });
+    const base64 = data.data.toString();
+    const decoded = new TextDecoder().decode(
+        Uint8Array.from(atob(base64), c => c.charCodeAt(0))
+    );
+    return decoded;
+};
+
 export interface FileStats {
     size: number;
 }

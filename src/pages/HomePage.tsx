@@ -1,22 +1,20 @@
 import './HomePage.css';
-import { EmptyAppConfig, InAppState, InAppStateCurrent } from '../model';
+import { EmptyAppConfig, InAppState, InAppStateCurrent, ViewType } from '../model';
 import { Dispatch } from '../hooks/useReducer';
 import { AppEvent } from '../events';
 import ProgressIndicator from '../components/ProgressIndicator';
 import FolderView from '../components/FolderView';
 import ConfigView from '../components/ConfigView';
-import { getFolder } from '../business';
+import TextPreview from '../components/TextPreview';
 
 interface HomePageProps {
   inAppState: InAppStateCurrent;
-  folderPath: string;
   dispatch: Dispatch<AppEvent>;
 }
 
 // TODO: show (state.folderMeta.errors) somehow
 const HomePage: React.FC<HomePageProps> = (props) => {
   const inAppState = props.inAppState;
-  const folderPath = props.folderPath;
   const dispatch = props.dispatch;
 
   if (inAppState.state == InAppState.AppConfigLoading ||
@@ -38,13 +36,28 @@ const HomePage: React.FC<HomePageProps> = (props) => {
     return <div>ERROR: {inAppState.err}</div>
   }
 
-  const folder = getFolder(folderPath, inAppState.fileTree);
+  if (inAppState.view.type == ViewType.FilePreview) {
+    if (inAppState.view.content) {
+      return <TextPreview content={inAppState.view.content} dispatch={dispatch} />
+    }
+  }
+
+  const folder = inAppState.view.folder;
   if (!folder) {
     return <div>404 Not found</div>
   }
 
+  let showProgress = false;
+  if (inAppState.view.type == ViewType.FolderView && inAppState.view.pendingProgress) {
+    showProgress = true;
+  }
+  if (inAppState.view.type == ViewType.FilePreview && !inAppState.view.content) {
+    showProgress = true;
+  }
+
+  // TODO: rename pendingDownload
   return <FolderView
-    pendingDownload={inAppState.pendingDownload}
+    pendingDownload={showProgress}
     folder={folder}
     dispatch={dispatch} />;
 };

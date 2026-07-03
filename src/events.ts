@@ -24,6 +24,8 @@ export enum EventType {
     FileDownloadFailed,
 
     OpeningFileFailed,
+    FileContentLoaded,
+    FileContentLoadingFailed,
 }
 
 export interface NeverEvent {
@@ -90,7 +92,8 @@ export interface FileDownloadRequestedEvent {
 
 export interface FileDownloadedEvent {
     type: EventType.FileDownloaded;
-    path: string;
+    fileNode: FileTreeNode_File;
+    localPath: string;
 }
 
 export interface FileDownloadFailedEvent {
@@ -100,6 +103,16 @@ export interface FileDownloadFailedEvent {
 
 export interface OpeningFileFailedEvent {
     type: EventType.OpeningFileFailed;
+    err: string;
+}
+
+export interface FileContentLoadedEvent {
+    type: EventType.FileContentLoaded;
+    content: string;
+}
+
+export interface FileContentLoadingFailedEvent {
+    type: EventType.FileContentLoadingFailed;
     err: string;
 }
 
@@ -118,4 +131,6 @@ export type AppEvent =
     | FileDownloadRequestedEvent
     | FileDownloadedEvent
     | FileDownloadFailedEvent
-    | OpeningFileFailedEvent;
+    | OpeningFileFailedEvent
+    | FileContentLoadedEvent
+    | FileContentLoadingFailedEvent;

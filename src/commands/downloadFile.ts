@@ -59,9 +59,9 @@ export const DownloadFile = (seq: number, appConfig: AppConfig, fileNode: FileTr
 
         try {
             // get local file stats
-            const path = makeLocalFilePath(
+            const localPath = makeLocalFilePath(
                 appConfig.skyboxConfigs.deviceId, fullPath, fileName);
-            const stats = await getFileStats(path);
+            const stats = await getFileStats(localPath);
 
             // TODO: check etag
             // This will not match when testing on web, 
@@ -71,7 +71,8 @@ export const DownloadFile = (seq: number, appConfig: AppConfig, fileNode: FileTr
                 console.log("Already downloaded");
                 dispatch({
                     type: EventType.FileDownloaded,
-                    path,
+                    fileNode,
+                    localPath,
                 });
                 return;
             }
@@ -119,12 +120,13 @@ export const DownloadFile = (seq: number, appConfig: AppConfig, fileNode: FileTr
             // console.log("Saving file");
             // TODO: works but 'npx tsc --noEmit' complains
             const blob = new Blob([decrypted]);
-            await saveFile(path, blob);
+            await saveFile(localPath, blob);
 
             // dispatch result
             dispatch({
                 type: EventType.FileDownloaded,
-                path,
+                fileNode,
+                localPath,
             });
         } catch (err) {
             dispatch({

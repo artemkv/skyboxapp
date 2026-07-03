@@ -53,7 +53,7 @@ const App: React.FC<AppProps> = (props) => {
   return (
     <IonApp>
       {state.route.type == RouteType.FolderView ?
-        <HomePage inAppState={state.inAppState} folderPath={state.route.folderPath} dispatch={dispatch} /> : null}
+        <HomePage inAppState={state.inAppState} dispatch={dispatch} /> : null}
     </IonApp>
   );
 }

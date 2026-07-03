@@ -18,7 +18,8 @@ export enum CommandType {
     LoadFolderMeta,
 
     DownloadFile,
-    ViewFile
+    OpenFile,
+    ReadeFileContent
 }
 
 export interface DoNothingCommand extends Command<AppEvent> {
@@ -72,9 +73,14 @@ export interface DownloadFileCommand extends Command<AppEvent> {
     fileNode: FileTreeNode_File;
 }
 
-export interface ViewFileCommand extends Command<AppEvent> {
-    type: CommandType.ViewFile;
-    path: string;
+export interface OpenFileCommand extends Command<AppEvent> {
+    type: CommandType.OpenFile;
+    localPath: string;
+}
+
+export interface ReadeFileContentCommand extends Command<AppEvent> {
+    type: CommandType.ReadeFileContent;
+    localPath: string;
 }
 
 export type AppCommand =
@@ -88,7 +94,8 @@ export type AppCommand =
     | SaveAppConfigCommand
     | LoadFolderMetaCommand
     | DownloadFileCommand
-    | ViewFileCommand;
+    | OpenFileCommand
+    | ReadeFileContentCommand;
 
 export const DoNothing: DoNothingCommand = {
     seq: -1,
