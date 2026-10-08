@@ -117,7 +117,8 @@ export const DownloadFile = (seq: number, appConfig: AppConfig, fileNode: FileTr
                 base64ToUint8Array(fileNonce));
 
             // save file
-            const blob = new Blob([new Uint8Array(decrypted)]);
+            // as Uint8Array<ArrayBuffer> ?
+            const blob = new Blob([decrypted]);
             await saveFile(localPath, blob);
 
             // dispatch result
