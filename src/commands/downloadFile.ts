@@ -117,9 +117,7 @@ export const DownloadFile = (seq: number, appConfig: AppConfig, fileNode: FileTr
                 base64ToUint8Array(fileNonce));
 
             // save file
-            // console.log("Saving file");
-            // TODO: works but 'npx tsc --noEmit' complains
-            const blob = new Blob([decrypted]);
+            const blob = new Blob([new Uint8Array(decrypted)]);
             await saveFile(localPath, blob);
 
             // dispatch result
